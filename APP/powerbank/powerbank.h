@@ -41,7 +41,7 @@ enum BAT_CMD_ENUM
 {
 	BAT_ComTest = 0xFF,
 	BAT_SetID_SUCCESS = 0xFE,
-	BAT_CMD_Header = 0xA0,
+	BAT_Down_Header = 0xA0,
 	BAT_Down_End = 0xA1,
 	BAT_Down_ReadID = 0x01,
 	BAT_Down_SetID = 0x11,
@@ -86,10 +86,14 @@ extern struct USART6_Fram_TypeDef USART6_Fram;
 void Charge_Init(void);
 unsigned int get_crc(unsigned char pbuf[], unsigned char num);
 unsigned int get_crc_2(int num, ...);
+void app_cmd_anasys(u8 *data, u8 cmd);
+void app_frame_anasys(u8 *data, u16 size);
+u16 fillDataToTxBuf(u8 cmd, u8 allowSetID, u8 *id);
+
 void controlPowerBankCharge(u8 pb, u8 allow);
 void USART6_Init(u32 bound);
 void Powerbank_Init(u32 bound);
 
-void USART6_DMA_Send(u8 *data, u16 size);
+void USART6_DMA_Send(u16 size);
 
 #endif /* POWERBANK_POWERBANK_H_ */

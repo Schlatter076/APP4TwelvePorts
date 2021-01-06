@@ -252,54 +252,171 @@ unsigned int get_crc_2(int num, ...)
 	va_end(ap); //释放指针资源
 	return wcrc;
 }
-
-void app_cmd_anasys(u8 *data, u16 size)
+/**
+ * 帧协议解析
+ * @data 待解析的数据
+ * @size 数据长度
+ */
+void app_frame_anasys(u8 *data, u16 size)
 {
-	u8 inx = 0;
-	u8 len = 0;
-	u8 cmd = 0;
-	u16 crc = 0;
-	u8 *crcBuf;
-	for(int i = 0; i < size - 3; i++)
+	u8 Hinx = 0; //数据头位置
+	u8 len = 0;  //帧长度
+	u8 cmd = 0;  //控制字
+	u16 crc = 0; //crc校验值
+	u8 *crcBuf;  //待校验的crc数据缓冲区
+	u8 *temBuf;  //完整帧数据缓冲区
+	//寻找数据头
+	for (int i = 0; i < size - 3; i++)
 	{
-		if(data[i] == BAT_Up_Header)
+		if (data[i] == BAT_Up_Header)
 		{
-			inx = i;
-			len = data[inx + 1];
-			cmd = data[inx + 2];
+			Hinx = i; //数据头的位置
+			len = data[Hinx + 1]; //本帧数据的长度
+			cmd = data[Hinx + 2]; //本帧数据携带的控制字
 			break;
 		}
 	}
-	crcBuf = mymalloc(len - 4);
-	for(int i = 0; i < len - 4; i++, inx++)
+	//判断数据完整性
+	if (len <= (size - Hinx))
 	{
-		crcBuf[i] = data[inx + 1];
-	}
-	crc = get_crc(crcBuf, len - 4);
-	myfree(crcBuf);
-	if(len -2 < size)
-	{
-		if(crc == ((data[len - 3] << 8) | data[len -2])) //crc校验成功
+		//包含了一帧完整的数据
+		if (data[Hinx + len - 1] == BAT_Up_End)
 		{
-
+			crcBuf = mymalloc(len - 4); //为crc申请空间
+			temBuf = mymalloc(len);     //为帧申请空间
+			for (int i = 0; i < len; i++, Hinx++)
+			{
+				temBuf[i] = data[Hinx];
+				if (i < len - 4)
+				{
+					crcBuf[i] = data[Hinx + 1];
+				}
+			}
+			crc = get_crc(crcBuf, len - 4);
+			myfree(crcBuf); //释放crc缓冲区
+			if (crc == ((data[len - 3] << 8) | data[len - 2])) //crc校验成功
+			{
+				app_cmd_anasys(temBuf, cmd);
+				//推送消息到任务
+			}
+			myfree(temBuf); //释放帧缓冲区
 		}
 	}
+}
+/**
+ * 帧数据解析
+ * @data 完整的数据
+ * @cmd  控制字
+ */
+void app_cmd_anasys(u8 *data, u8 cmd)
+{
+	switch (cmd)
+	{
+	case BAT_Up_Admin:
+		PowerbankSTA.VOL = data[11];
+		for (int inx = 0; inx < 8; inx++)
+		{
+			PowerbankSTA.BatID[inx] = data[inx + 3];
+		}
+		PowerbankSTA.BatID[8] = '\0';
+		break;
+	case BAT_ComTest:
+
+		break;
+	case BAT_Up_ReadID:
+		for (int inx = 0; inx < 8; inx++)
+		{
+			PowerbankSTA.BatID[inx] = data[inx + 3];
+		}
+		PowerbankSTA.BatID[8] = '\0';
+		break;
+	case BAT_SetID_SUCCESS:
+		for (int inx = 0; inx < 8; inx++)
+		{
+			PowerbankSTA.BatID[inx] = data[inx + 3];
+		}
+		PowerbankSTA.BatID[8] = '\0';
+		break;
+	case BAT_Up_ReadVOL:
+		PowerbankSTA.VOL = data[11];
+		for (int inx = 0; inx < 8; inx++)
+		{
+			PowerbankSTA.BatID[inx] = data[inx + 3];
+		}
+		PowerbankSTA.BatID[8] = '\0';
+		break;
+	case BAT_Up_ReadCUR:
+		PowerbankSTA.CUR = (data[11] << 8) | data[12];
+		for (int inx = 0; inx < 8; inx++)
+		{
+			PowerbankSTA.BatID[inx] = data[inx + 3];
+		}
+		PowerbankSTA.BatID[8] = '\0';
+		break;
+	case BAT_Up_ReadERROR:
+		PowerbankSTA.ERROR = data[11];
+		for (int inx = 0; inx < 8; inx++)
+		{
+			PowerbankSTA.BatID[inx] = data[inx + 3];
+		}
+		PowerbankSTA.BatID[8] = '\0';
+		break;
+	default:
+		break;
+	}
+}
+
+/**
+ * 控制充电宝
+ * @cmd 控制字
+ * @allowSetID 是否是设置ID指令
+ * @id  待设置的ID
+ * @return 指令的长度
+ */
+u16 fillDataToTxBuf(u8 cmd, u8 allowSetID, u8 *id)
+{
+	u16 crc;
+	USART6_Fram.TxBuf[0] = BAT_Down_Header;
+	if (allowSetID)
+	{
+		u8 *crcBuf = mymalloc(0x0A);
+		USART6_Fram.TxBuf[1] = 0x0E;
+		USART6_Fram.TxBuf[2] = BAT_Down_SetID;
+		crcBuf[0] = 0x0E;
+		crcBuf[1] = BAT_Down_SetID;
+		for (int i = 0; i < 8; i++)
+		{
+			USART6_Fram.TxBuf[i + 3] = id[i];
+			crcBuf[i + 2] = id[i];
+		}
+		crc = get_crc(crcBuf, 0x0A);
+		USART6_Fram.TxBuf[11] = (crc >> 8) & 0xFF;
+		USART6_Fram.TxBuf[12] = crc & 0xFF;
+		USART6_Fram.TxBuf[13] = BAT_Down_End;
+		myfree(crcBuf);
+		return (0x0E);
+	}
+	//其他
+	USART6_Fram.TxBuf[1] = 0x06;
+	USART6_Fram.TxBuf[2] = cmd;
+	crc = get_crc_2(2, USART6_Fram.TxBuf[1], USART6_Fram.TxBuf[2]);
+	USART6_Fram.TxBuf[3] = crc >> 8 & 0xFF;
+	USART6_Fram.TxBuf[4] = crc & 0xFF;
+	USART6_Fram.TxBuf[5] = BAT_Down_End;
+	return (6);
 }
 
 /**
  * 串口6通过DMA发送数据
  * @data 待发送的数据
- * @size 待发送数据的长度
  * @return 无
  */
-void USART6_DMA_Send(u8 *data, u16 size)
+void USART6_DMA_Send(u16 size)
 {
 	//等待空闲
 	while (USART6_Fram.DMA_Tx_Busy)
 		;
 	USART6_Fram.DMA_Tx_Busy = 1;
-	//复制数据
-	memcpy(USART6_Fram.TxBuf, data, size);
 	//设置传输数据长度
 	DMA_SetCurrDataCounter(DMA2_Stream6, size);
 	//打开DMA,开始发送
