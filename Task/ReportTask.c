@@ -21,6 +21,6 @@ void report_task(void *p_arg)
 				(OS_ERR*) &err);  //错误码
 		//成功读取到消息,开始上报
 
-		OSTimeDlyHMSM(0, 0, 1, 0, OS_OPT_TIME_PERIODIC, &err); //延时1s,将调度权交给CPU
+		OSTimeDlyHMSM(0, 0, 0, 100, OS_OPT_TIME_PERIODIC, &err);
 	}
 }

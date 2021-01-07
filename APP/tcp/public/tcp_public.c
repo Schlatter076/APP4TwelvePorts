@@ -84,28 +84,3 @@ void AnalyzeServerParams(void)
 			RegisterParams.needConfirmParams, RegisterParams.motor_TCtime,
 			RegisterParams.motor_HTtime);
 }
-
-/**
- * 将str通过delims进行分割,所得的字符串填充在res中
- * @fram
- * @delims 分隔符
- */
-void mySplit(struct STRUCT_USART_Fram *fram, char *delims)
-{
-	char *result = (char *) fram->DeData;
-	u8 inx = 0;
-	while (inx < 2)
-	{
-		result++;
-		if (*result == ',')
-		{
-			++inx;
-		}
-	}
-	result++;
-	memcpy(fram->ServerData, result, BASE64_BUF_LEN);
-	result = strtok((char *) fram->DeData, delims);
-	fram->Server_Command[0] = (unsigned char *) result;
-	result = strtok( NULL, delims);
-	fram->Server_Command[1] = (unsigned char *) result;
-}

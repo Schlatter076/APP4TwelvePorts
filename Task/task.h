@@ -41,6 +41,12 @@ void report_task(void *p_arg);
 OS_TCB  USART1TaskTCB;						//任务控制块
 CPU_STK USART1_TASK_STK[REPORT_STK_SIZE];   	//任务堆栈
 void usart1_task(void *p_arg);
+//服务器数据处理任务
+#define PROCESS_SERVER_TASK_PRIO  7  				//任务优先级
+#define PROCESS_SERVER_STK_SIZE   128  				//任务堆栈大小
+OS_TCB  Process_SeverTaskTCB;						//任务控制块
+CPU_STK PROCESS_SERVER_TASK_STK[PROCESS_SERVER_STK_SIZE];   	//任务堆栈
+void process_server_task(void *p_arg);
 //=========任务管理器===============================
 //=========软件定时器===============================
 OS_TMR 	Stmr1;

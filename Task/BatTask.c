@@ -14,10 +14,11 @@ void bat_task(void *p_arg)
 {
 	u8 pbStatu = 0;
 	u8 motorStatu = 0;
-	u8 communicationStatu = 0;
+	vu8 communicationStatu = 0;
 	u8 index = 0;
 	u8 pbERROR = 0;
 	u16 len = 0;
+	vu8 portSTA = 0;
 	OS_ERR err;
 	p_arg = p_arg;
 	len = fillDataToTxBuf(BAT_Down_Admin, 0, NULL);
@@ -65,18 +66,18 @@ void bat_task(void *p_arg)
 			index = (pbERROR << 3) | (pbStatu << 2) | (communicationStatu << 1)
 					| (motorStatu << 0);
 			//查状态表
-			TCP_Params.statuCode[i] = bat_statuBuf[index];
+			portSTA = bat_statuBuf[index];
 			//增加判断============Begin============
-			if (TCP_Params.statuCode[i] == 11 || TCP_Params.statuCode[i] == 1) //有电池，锁弹出异常，通信正常
+			if (portSTA == 11 || portSTA == 1) //有电池，锁弹出异常，通信正常
 			{
 				if (MyFlashParams.IgnoreLock[i] == 1) //设置了忽略锁状态
 				{
-					TCP_Params.statuCode[i] =
-							(TCP_Params.statuCode[i] == 11) ? 10 : 0;
+					portSTA =
+							(portSTA == 11) ? 10 : 0;
 				}
 			}
 			//增加判断============End============
-			setBATInstruction(i, TCP_Params.statuCode[i]);  //配置卡口状态
+			setBATInstruction(i, portSTA);  //配置卡口状态
 			//清除当前状态数组的值
 			memset(PowerbankSTA.powerBankBuf[i], '\0', 18);
 			if (communicationStatu) //如果正常有通信
@@ -84,25 +85,25 @@ void bat_task(void *p_arg)
 				if (pbERROR) //充电宝上报错误信息
 				{
 					snprintf(PowerbankSTA.powerBankBuf[i], 18, "%d_%d_%02X_%s",
-							i, TCP_Params.statuCode[i], PowerbankSTA.ERROR,
+							i, portSTA, PowerbankSTA.ERROR,
 							PowerbankSTA.BatID);
 				}
 				else //正常通信状态
 				{
 					snprintf(PowerbankSTA.powerBankBuf[i], 18, "%d_%d_%d_%s", i,
-							TCP_Params.statuCode[i], PowerbankSTA.VOL,
+							portSTA, PowerbankSTA.VOL,
 							PowerbankSTA.BatID);
 				}
 			}
 			else //未接收到充电宝发来的数据
 			{
 				snprintf(PowerbankSTA.powerBankBuf[i], 18, "%d_%d", i,
-						TCP_Params.statuCode[i]);
+						portSTA);
 			}
 			//===========================================================================
-			if (TCP_Params.statuCode[i] != TCP_Params.currentStatuCode[i]) //卡口状态发生变化了
+			if (portSTA != TCP_Params.currentStatuCode[i]) //卡口状态发生变化了
 			{
-				TCP_Params.currentStatuCode[i] = TCP_Params.statuCode[i];
+				TCP_Params.currentStatuCode[i] = portSTA;
 				//通知上报卡口任务
 				OSTaskQPost((OS_TCB*) &ReportTaskTCB,	//待发送消息的任务控制块
 						(void*) PowerbankSTA.powerBankBuf[i],      //待发送的数据

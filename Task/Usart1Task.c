@@ -10,6 +10,9 @@ void usart1_task(void *p_arg)
 {
 	OS_ERR err;
 	p_arg = p_arg;
+	char *res = NULL;
+	u16 DecryptionLen = 0;
+	char *DecryptionBuf = NULL;
 	while (1)
 	{
 		//等待数据接收
@@ -20,28 +23,32 @@ void usart1_task(void *p_arg)
 				(CPU_TS*) 0,    //时间戳
 				(OS_ERR*) &err); //错误码
 
-		if (strchr((const char *)USART1_Fram.RxBuf, '[') && strchr((const char *)USART1_Fram.RxBuf, ']'))
+		if (strchr((const char *) USART1_Fram.RxBuf, '[')
+				&& strchr((const char *) USART1_Fram.RxBuf, ']'))
 		{
-			int DecryptionLen = 0; //排除空心跳
-			char *res = (char *) USART1_Fram.RxBuf;
-			u16 deDataCnt = 0;
-			while (*res != '[')
+			res = (char *) USART1_Fram.RxBuf;
+			DecryptionBuf = mymalloc(USART1_Fram.AccessLen);
+			while (*res != '[')  //找到数据头
 			{
 				res++;
 			}
-			while (*res == '[')
-				res++;
-
-			while (*res != ']')
+			while (*res != ',') //跳过设备编号
 			{
-				DecryptionLen++;
-				USART1_Fram.DeData[deDataCnt++] = *res;
 				res++;
 			}
+			res++;
+			strcpy(DecryptionBuf, "1,");
+			strcat(DecryptionBuf, strtok(res, "]"));
+			DecryptionLen = strlen(DecryptionBuf);
 			memset(USART1_Fram.RxBuf, '\0', USART1_Fram.AccessLen);
-			if (DecryptionLen > 1)
+			if (DecryptionLen > 3)
 			{
-				mySplit(&USART1_Fram, ",");
+				//推送消息到数据处理任务
+				OSTaskQPost((OS_TCB*) &Process_SeverTaskTCB, //待发送消息的任务控制块
+						(void*) DecryptionBuf,      //待发送的数据
+						(OS_MSG_SIZE) DecryptionLen,       //发送的数据大小(字节数)
+						(OS_OPT) OS_OPT_POST_FIFO,  //添加到消息队列尾
+						(OS_ERR*) &err);     //返回的错误码
 			}
 		}
 		OSTimeDlyHMSM(0, 0, 0, 10, OS_OPT_TIME_PERIODIC, &err);

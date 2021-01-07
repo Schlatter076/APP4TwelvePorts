@@ -25,18 +25,18 @@ struct STRUCT_USART_Fram  //定义一个全局串口数据帧的处理结构体
 {
 	unsigned char RxBuf[TCP_MAX_LEN];
 	unsigned char TxBuf[BASE64_BUF_LEN];
-	unsigned char DeData[BASE64_BUF_LEN];
-	unsigned char EnData[BASE64_BUF_LEN];
-	char *base64Str;
-	unsigned char ServerData[BASE64_BUF_LEN];
-	unsigned char *Server_Command[2];
+//	unsigned char DeData[BASE64_BUF_LEN];
+//	unsigned char EnData[BASE64_BUF_LEN];
+//	char *base64Str;
+//	unsigned char ServerData[BASE64_BUF_LEN];
+//	unsigned char *Server_Command[2];
 	__IO u8 linkedClosed;
-	__IO u8 allowProcessServerData;
-	__IO u8 init;
-	__IO u8 registerSuccess;
-	__IO u8 firstStatuHeartNotSucc;
-	__IO u8 serverStatuCnt;
-	__IO u8 allowHeart;
+//	__IO u8 allowProcessServerData;
+//	__IO u8 init;
+//	__IO u8 registerSuccess;
+//	__IO u8 firstStatuHeartNotSucc;
+//	__IO u8 serverStatuCnt;
+//	__IO u8 allowHeart;
 	__IO u8 forceHeart_32;
 	__IO u8 forceHeart_90;
 	__IO u8 AT_test_OK;
@@ -59,14 +59,14 @@ extern struct STRUCT_USART_Fram USART1_Fram;
 
 struct STRUCT_USART_Params
 {
-	char locations[2][12];
+//	char locations[2][12];
 	unsigned char ccid[24];
 	unsigned char cops;
 	u8 rssi; //信号强度
 	int port;
 	char dd[20];
 	__IO u8 play;
-	u8 statuCode[12];
+//	u8 statuCode[12];
 	u8 currentStatuCode[12];
 	__IO u8 checkPBst;
 	__IO u8 process4G;
@@ -151,6 +151,5 @@ typedef enum
 } ENUM_tcpUP_TypeDef;
 
 void AnalyzeServerParams(void);
-void mySplit(struct STRUCT_USART_Fram *fram, char *delims);
 
 #endif /* _TCP_PUBLIC_H_ */
