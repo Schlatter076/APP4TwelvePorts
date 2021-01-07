@@ -32,6 +32,10 @@
 //		struct STRUCT_USART_Fram *fram);
 //void getRegisterParams(struct STRUCT_USART_Fram *fram);
 //
+
+
+
+
 void process_server_task(void *p_arg)
 {
 	u8 *mes;
