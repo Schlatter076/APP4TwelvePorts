@@ -59,6 +59,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/motor}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/powerbank}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/DMA}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/backlight}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/HTim}&quot;"/>
 								</option>
 								<inputType id="com.atollic.truestudio.as.input.2000543761" name="Input" superClass="com.atollic.truestudio.as.input"/>
 							</tool>
@@ -92,6 +94,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/motor}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/powerbank}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/DMA}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/backlight}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/HTim}&quot;"/>
 								</option>
 								<option id="com.atollic.truestudio.common_options.target.endianess.1861314789" name="Endianess" superClass="com.atollic.truestudio.common_options.target.endianess" useByScannerDiscovery="false"/>
 								<option id="com.atollic.truestudio.common_options.target.mcpu.1360482733" name="Microcontroller" superClass="com.atollic.truestudio.common_options.target.mcpu" useByScannerDiscovery="false" value="STM32F407VG" valueType="enumerated"/>
@@ -217,6 +221,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/motor}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/powerbank}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/DMA}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/backlight}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/HTim}&quot;"/>
 								</option>
 								<inputType id="com.atollic.truestudio.as.input.468461345" name="Input" superClass="com.atollic.truestudio.as.input"/>
 							</tool>
@@ -250,6 +256,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/motor}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/powerbank}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/DMA}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/backlight}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/APP/HTim}&quot;"/>
 								</option>
 								<option id="com.atollic.truestudio.common_options.target.endianess.1049949372" name="Endianess" superClass="com.atollic.truestudio.common_options.target.endianess"/>
 								<option id="com.atollic.truestudio.common_options.target.mcpu.1953435142" name="Microcontroller" superClass="com.atollic.truestudio.common_options.target.mcpu" value="STM32F407VG" valueType="enumerated"/>

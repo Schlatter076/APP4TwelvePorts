@@ -14,23 +14,16 @@ void USART1_Init(u32 bound)
 	NVIC_InitTypeDef NVIC_InitStructure;
 
 	USART_DeInit(USART1);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE); //使能USART6时钟
+	//=====================================================================================================
+	DMA_USART_Tx_Init(USART1, RCC_AHB1Periph_DMA2, DMA2_Stream7_IRQn, 3, 1,
+	DMA2_Stream7, DMA_Channel_4, (uint32_t) (&USART1->DR),
+			(uint32_t) USART1_Fram.TxBuf, BASE64_BUF_LEN, DMA_Priority_Low);
 
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE); //使能GPIOA时钟
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE); //使能USART1时钟
-
-	//串口1对应引脚复用映射
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_USART1); //GPIOA9复用为USART1
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_USART1); //GPIOA10复用为USART1
-
-	//USART1端口配置
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_10; //GPIOA9与GPIOA10
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF; //复用功能
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	//速度50MHz
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; //推挽复用输出
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP; //上拉
-	GPIO_Init(GPIOA, &GPIO_InitStructure); //初始化PA9，PA10
-
-	//USART1 初始化设置
+	DMA_USART_Rx_Init(USART1, RCC_AHB1Periph_DMA2, DMA2_Stream2, DMA_Channel_4,
+			(uint32_t) (&USART1->DR), (uint32_t) USART1_Fram.RxBuf,
+			TCP_MAX_LEN, DMA_Priority_Medium);
+	//=====================================================================================================
 	USART_InitStructure.USART_BaudRate = bound; //波特率设置
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b; //字长为8位数据格式
 	USART_InitStructure.USART_StopBits = USART_StopBits_1; //一个停止位
@@ -38,54 +31,117 @@ void USART1_Init(u32 bound)
 	USART_InitStructure.USART_HardwareFlowControl =
 	USART_HardwareFlowControl_None; //无硬件数据流控制
 	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;	//收发模式
-	USART_Init(USART1, &USART_InitStructure); //初始化串口1
+	USART_Init(USART1, &USART_InitStructure); //初始化串口
 
-	USART_Cmd(USART1, ENABLE);  //使能串口1
-	USART_ClearFlag(USART1, USART_FLAG_TC);
-	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);  //开启相关中断
-	USART_ITConfig(USART1, USART_IT_ORE, ENABLE);  //开启相关中断
-	USART_ITConfig(USART1, USART_IT_IDLE, ENABLE);  //开启相关中断
-
-	//Usart1 NVIC 配置
-	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;  //串口1中断通道
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;  //抢占优先级3
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;  //子优先级3
+	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;  //抢占优先级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;  //子优先级
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;  //IRQ通道使能
-	NVIC_Init(&NVIC_InitStructure);  //根据指定的参数初始化VIC寄存器、
+	NVIC_Init(&NVIC_InitStructure);  //根据指定的参数初始化VIC寄存器
+
+	//中断配置
+	USART_ITConfig(USART1, USART_IT_TC, DISABLE);
+	USART_ITConfig(USART1, USART_IT_RXNE, DISABLE);
+	USART_ITConfig(USART1, USART_IT_TXE, DISABLE);
+	USART_ITConfig(USART1, USART_IT_IDLE, ENABLE);
+	//启动串口
+	USART_Cmd(USART1, ENABLE);
+
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE); //使能GPIO时钟
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_USART1);
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_USART1);
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_10;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF; //复用功能
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	//速度50MHz
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; //推挽复用输出
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP; //上拉
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+}
+/**
+ * 串口1输出数据
+ * @fmt 格式化参数
+ * @return 无
+ */
+void Debug_Printf(const char *fmt, ...)
+{
+	va_list ap;
+	//等待空闲,防止数据不同步
+	while (USART1_Fram.DMA_Tx_Busy)
+		;
+	USART1_Fram.DMA_Tx_Busy = 1;
+	va_start(ap, fmt);
+	vsprintf((char *) USART1_Fram.TxBuf, fmt, ap);
+	va_end(ap);
+	//设置传输数据长度
+	DMA_SetCurrDataCounter(DMA2_Stream7, strlen((const char *) USART1_Fram.TxBuf));
+	//打开DMA,开始发送
+	DMA_Cmd(DMA2_Stream7, ENABLE);
+}
+
+void DMA2_Stream7_IRQHandler(void)
+{
+#if SYSTEM_SUPPORT_OS
+	OSIntEnter();
+#endif
+	if (DMA_GetITStatus(DMA2_Stream7, DMA_IT_TCIF7) != RESET)
+	{
+		//清除标志位
+		DMA_ClearFlag(DMA2_Stream7, DMA_FLAG_TCIF7);
+		//关闭DMA
+		DMA_Cmd(DMA2_Stream7, DISABLE);
+		//打开发送完成中断,发送最后两个字节
+		USART_ITConfig(USART1, USART_IT_TC, ENABLE);
+	}
+#if SYSTEM_SUPPORT_OS
+	OSIntExit(); //退出中断
+#endif
 }
 
 void USART1_IRQHandler(void)                	//串口1中断服务程序
 {
-	u8 ch;
 #if SYSTEM_SUPPORT_OS  //使用UCOS操作系统
+	OS_ERR err;
 	OSIntEnter();
 #endif
-	if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+	if (USART_GetITStatus(USART1, USART_IT_TC) != RESET)
 	{
-		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
-		ch = USART_ReceiveData(USART1);  //(USART1->DR);	//读取接收到的数据
-		if (USART1_Fram.InfBit.Length < (TCP_MAX_LEN - 1))
-		{
-			USART1_Fram.RxBuf[USART1_Fram.InfBit.Length++] = ch;
-		}
-		else
-		{
-			memset(USART1_Fram.RxBuf, 0, TCP_MAX_LEN);
-			USART1_Fram.InfAll = 0;
-		}
+		//关闭发送完成中断
+		USART_ITConfig(USART1, USART_IT_TC, DISABLE);
+		//发送完成
+		USART1_Fram.DMA_Tx_Busy = 0;
+#if SYSTEM_SUPPORT_OS
+		//推送发送完成
+		OSFlagPost((OS_FLAG_GRP*) &EventFlags, //对应的事件标志组
+				(OS_FLAGS) 0x08, //事件位
+				(OS_OPT) OS_OPT_POST_FLAG_SET, //选择置位
+				(OS_ERR*) &err); //错误码
+#endif
 	}
 	if (USART_GetITStatus(USART1, USART_IT_IDLE) != RESET)
 	{
 		USART1->SR; //先读SR，再读DR
 		USART1->DR;
-
+		//关闭DMA
+		DMA_Cmd(DMA2_Stream2, DISABLE);
+		//清除标志位
+		DMA_ClearFlag(DMA2_Stream2, DMA_FLAG_TCIF2);
+		//获得接收帧帧长
+		USART1_Fram.AccessLen = TCP_MAX_LEN
+				- DMA_GetCurrDataCounter(DMA2_Stream2);
+		//这里可以通知任务来处理数据
+#if SYSTEM_SUPPORT_OS
+		//推送接收完成
+		OSFlagPost((OS_FLAG_GRP*) &EventFlags, //对应的事件标志组
+				(OS_FLAGS) 0x10, //事件位
+				(OS_OPT) OS_OPT_POST_FLAG_SET, //选择置位
+				(OS_ERR*) &err); //错误码
+#endif
+		//设置传输数据长度
+		DMA_SetCurrDataCounter(DMA2_Stream2, TCP_MAX_LEN);
+		//打开DMA
+		DMA_Cmd(DMA2_Stream2, ENABLE);
 	}
-	if (USART_GetITStatus(USART1, USART_IT_ORE) != RESET)
-	{
-		USART_ClearFlag(USART1, USART_FLAG_ORE);
-		USART_ReceiveData(USART1);
-	}
-
 #if SYSTEM_SUPPORT_OS
 	OSIntExit();    	//退出中断
 #endif

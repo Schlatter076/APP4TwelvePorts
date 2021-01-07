@@ -11,9 +11,13 @@
 #include "dma.h"
 #include <stdarg.h>
 #include "malloc.h"
+#include "L74HC595.h"
 #if SYSTEM_SUPPORT_OS
 #include "includes.h"
 #endif
+#include "task.h"
+
+extern vu8 curPort;
 
 #define BAT_EN1    		(PDout(4))
 #define BAT_EN2    		(PDout(5))
@@ -89,9 +93,10 @@ unsigned int get_crc_2(int num, ...);
 void app_cmd_anasys(u8 *data, u8 cmd);
 void app_frame_anasys(u8 *data, u16 size);
 u16 fillDataToTxBuf(u8 cmd, u8 allowSetID, u8 *id);
-
+void setBATInstruction(u8 port, u8 sta);
 void controlPowerBankCharge(u8 pb, u8 allow);
 void USART6_Init(u32 bound);
+void communicateWithPort(u8 port);
 void Powerbank_Init(u32 bound);
 
 void USART6_DMA_Send(u16 size);

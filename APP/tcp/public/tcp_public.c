@@ -6,11 +6,16 @@
  */
 #include "tcp_public.h"
 
-struct STRUCT_USART_Fram F4G_Fram = {0};
-struct STRUCT_USART_Fram WIFI_Fram = {0};
-struct STRUCT_USART_Fram USART1_Fram = {0};
-struct STRUCT_USART_Params TCP_Params = {0};
-struct RegisterFram RegisterParams = {0};
+struct STRUCT_USART_Fram F4G_Fram =
+{ 0 };
+struct STRUCT_USART_Fram WIFI_Fram =
+{ 0 };
+struct STRUCT_USART_Fram USART1_Fram =
+{ 0 };
+struct STRUCT_USART_Params TCP_Params =
+{ 0 };
+struct RegisterFram RegisterParams =
+{ 0 };
 
 /**
  * 拆分服务器下发的指令
@@ -18,7 +23,7 @@ struct RegisterFram RegisterParams = {0};
 void AnalyzeServerParams(void)
 {
 	u8 inx = 0;
-	char *tem = (char *)MyFlashParams.ServerParams;
+	char *tem = (char *) MyFlashParams.ServerParams;
 	char *buf;
 	printf("RegisterParams=%s\r\n", tem);
 	//获取秘钥
@@ -78,4 +83,29 @@ void AnalyzeServerParams(void)
 			RegisterParams.key, RegisterParams.ip, RegisterParams.port,
 			RegisterParams.needConfirmParams, RegisterParams.motor_TCtime,
 			RegisterParams.motor_HTtime);
+}
+
+/**
+ * 将str通过delims进行分割,所得的字符串填充在res中
+ * @fram
+ * @delims 分隔符
+ */
+void mySplit(struct STRUCT_USART_Fram *fram, char *delims)
+{
+	char *result = (char *) fram->DeData;
+	u8 inx = 0;
+	while (inx < 2)
+	{
+		result++;
+		if (*result == ',')
+		{
+			++inx;
+		}
+	}
+	result++;
+	memcpy(fram->ServerData, result, BASE64_BUF_LEN);
+	result = strtok((char *) fram->DeData, delims);
+	fram->Server_Command[0] = (unsigned char *) result;
+	result = strtok( NULL, delims);
+	fram->Server_Command[1] = (unsigned char *) result;
 }

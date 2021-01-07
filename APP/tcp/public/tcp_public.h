@@ -40,6 +40,8 @@ struct STRUCT_USART_Fram  //定义一个全局串口数据帧的处理结构体
 	__IO u8 forceHeart_32;
 	__IO u8 forceHeart_90;
 	__IO u8 AT_test_OK;
+	vu8 DMA_Tx_Busy;
+	vu16 AccessLen;
 	union
 	{
 		__IO u16 InfAll;
@@ -64,8 +66,8 @@ struct STRUCT_USART_Params
 	int port;
 	char dd[20];
 	__IO u8 play;
-	u8 statuCode[6];
-	u8 currentStatuCode[6];
+	u8 statuCode[12];
+	u8 currentStatuCode[12];
 	__IO u8 checkPBst;
 	__IO u8 process4G;
 	__IO u8 processWIFI;
@@ -149,5 +151,6 @@ typedef enum
 } ENUM_tcpUP_TypeDef;
 
 void AnalyzeServerParams(void);
+void mySplit(struct STRUCT_USART_Fram *fram, char *delims);
 
 #endif /* _TCP_PUBLIC_H_ */

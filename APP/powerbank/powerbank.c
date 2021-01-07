@@ -6,13 +6,12 @@
  */
 #include "powerbank.h"
 
+//当前卡口
+vu8 curPort = 0xFF;
 struct USART6_Fram_TypeDef USART6_Fram =
 { 0 };
 struct Powerbank_Params_TypeDef PowerbankSTA =
 { 0 };
-/**卡口状态*/
-const unsigned char bat_statuBuf[16] =
-{ 1, 0, 9, 8, 3, 2, 11, 10, 0xFF, 0xFF, 5, 4, 0xFF, 0xFF, 7, 6 };
 
 void USART6_Init(u32 bound)
 {
@@ -194,6 +193,7 @@ void Powerbank_Init(u32 bound)
 	Charge_Init();
 	USART6_Init(bound);
 }
+
 /**
  * CRC校验函数
  * @pbuf 待校验的数组
@@ -297,7 +297,6 @@ void app_frame_anasys(u8 *data, u16 size)
 			if (crc == ((data[len - 3] << 8) | data[len - 2])) //crc校验成功
 			{
 				app_cmd_anasys(temBuf, cmd);
-				//推送消息到任务
 			}
 			myfree(temBuf); //释放帧缓冲区
 		}
@@ -363,6 +362,49 @@ void app_cmd_anasys(u8 *data, u8 cmd)
 		break;
 	default:
 		break;
+	}
+}
+
+/**
+ * 根据检测的状态设置
+ * @port 0-11
+ * @sta 状态
+ */
+void setBATInstruction(u8 port, u8 sta)
+{
+	if (sta >= 0 && sta <= 11)
+	{
+		if (sta == 10) //卡口正常状态
+		{
+			ledON(port + 1);
+			HC595_STATUS.slowBLINK[port] = 0; //慢闪
+			HC595_STATUS.fastBLINK[port] = 0;
+			if (PowerbankSTA.VOL < 95) //电量不满95%充电
+			{
+				PowerbankSTA.Charging[port] = 1; //表明在充电中
+				controlPowerBankCharge(port + 1, 1); //充电
+			}
+			else
+			{
+				PowerbankSTA.Charging[port] = 0; //表明未在充电中
+				controlPowerBankCharge(port + 1, 0); //不充电
+			}
+		}
+		else if (sta == 0) //正常无充电宝状态
+		{
+			PowerbankSTA.Charging[port] = 0;
+			controlPowerBankCharge(port + 1, 0); //不充电
+			ledOFF(port + 1);
+			HC595_STATUS.slowBLINK[port] = 0; //慢闪
+			HC595_STATUS.fastBLINK[port] = 0;
+		}
+		else //有异常
+		{
+			PowerbankSTA.Charging[port] = 0;
+			controlPowerBankCharge(port + 1, 0); //不充电
+			HC595_STATUS.slowBLINK[port] = 0; //慢闪
+			HC595_STATUS.fastBLINK[port] = 1; //快闪
+		}
 	}
 }
 
@@ -445,6 +487,7 @@ void DMA2_Stream6_IRQHandler(void)
 void USART6_IRQHandler(void)                	//串口1中断服务程序
 {
 #if SYSTEM_SUPPORT_OS  //使用UCOS操作系统
+	OS_ERR err;
 	OSIntEnter();
 #endif
 	if (USART_GetITStatus(USART6, USART_IT_TC) != RESET)
@@ -453,6 +496,13 @@ void USART6_IRQHandler(void)                	//串口1中断服务程序
 		USART_ITConfig(USART6, USART_IT_TC, DISABLE);
 		//发送完成
 		USART6_Fram.DMA_Tx_Busy = 0;
+#if SYSTEM_SUPPORT_OS
+		//推送发送完成
+		OSFlagPost((OS_FLAG_GRP*) &EventFlags, //对应的事件标志组
+				(OS_FLAGS) 0x01, //事件位
+				(OS_OPT) OS_OPT_POST_FLAG_SET, //选择置位
+				(OS_ERR*) &err); //错误码
+#endif
 	}
 	if (USART_GetITStatus(USART6, USART_IT_IDLE) != RESET)
 	{
@@ -466,7 +516,13 @@ void USART6_IRQHandler(void)                	//串口1中断服务程序
 		USART6_Fram.AccessLen = USART6_RX_BUF_LEN
 				- DMA_GetCurrDataCounter(DMA2_Stream1);
 		//这里可以通知任务来处理数据
-
+#if SYSTEM_SUPPORT_OS
+		//推送接收完成
+		OSFlagPost((OS_FLAG_GRP*) &EventFlags, //对应的事件标志组
+				(OS_FLAGS) 0x02, //事件位
+				(OS_OPT) OS_OPT_POST_FLAG_SET, //选择置位
+				(OS_ERR*) &err); //错误码
+#endif
 		//设置传输数据长度
 		DMA_SetCurrDataCounter(DMA2_Stream1, USART6_RX_BUF_LEN);
 		//打开DMA
@@ -476,4 +532,3 @@ void USART6_IRQHandler(void)                	//串口1中断服务程序
 	OSIntExit(); //退出中断
 #endif
 }
-

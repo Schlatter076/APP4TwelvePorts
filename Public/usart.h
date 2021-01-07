@@ -14,7 +14,14 @@
 #include "includes.h"
 #endif
 #include "STMFlash.h"
+#include "dma.h"
+#include "task.h"
+#include <stdarg.h>
+#include <stdio.h>
 
 void USART1_Init(u32 bound);
+void Debug_Printf(const char *fmt, ...);
+
+
 
 #endif /* USART_H_ */

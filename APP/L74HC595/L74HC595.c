@@ -72,11 +72,11 @@ void HC595_Send_Multi_Bytes(u8 *bytes, u16 len)
 
 void ledON(u8 led)
 {
-	if(led < 5)
+	if (led < 5)
 	{
 		HC595_STATUS.LAST_LED_STATU[0] &= ~(1 << (led - 1));
 	}
-	else if(led < 9)
+	else if (led < 9)
 	{
 		HC595_STATUS.LAST_LED_STATU[1] &= ~(1 << (led - 1));
 	}
@@ -88,11 +88,11 @@ void ledON(u8 led)
 }
 void ledOFF(u8 led)
 {
-	if(led < 5)
+	if (led < 5)
 	{
 		HC595_STATUS.LAST_LED_STATU[0] |= (1 << (led - 1));
 	}
-	else if(led < 9)
+	else if (led < 9)
 	{
 		HC595_STATUS.LAST_LED_STATU[1] |= (1 << (led - 1));
 	}
@@ -104,11 +104,11 @@ void ledOFF(u8 led)
 }
 void ledBLINK(u8 led)
 {
-	if(led < 5)
+	if (led < 5)
 	{
 		HC595_STATUS.LAST_LED_STATU[0] ^= (1 << (led - 1));
 	}
-	else if(led < 9)
+	else if (led < 9)
 	{
 		HC595_STATUS.LAST_LED_STATU[1] ^= (1 << (led - 1));
 	}
