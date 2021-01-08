@@ -10,9 +10,11 @@
 
 #include "stm32f4xx.h"
 
-
-
 #define SYSTEM_SUPPORT_OS 1u
+
+#if SYSTEM_SUPPORT_OS
+#include "includes.h"
+#endif
 
 //IO口操作宏定义
 #define BITBAND(addr, bitnum) ((addr & 0xF0000000)+0x2000000+((addr &0xFFFFF)<<5)+(bitnum<<2))

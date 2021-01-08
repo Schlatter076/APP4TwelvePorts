@@ -56,7 +56,7 @@ void Switch_Init(void)
  */
 u8 getBatSwitchSTA(u8 bat)
 {
-	u8 res;
+	u8 res = 0;
 	switch (bat)
 	{
 	case 1:
@@ -108,7 +108,7 @@ u8 getBatSwitchSTA(u8 bat)
  */
 u8 getMotorSwitchSTA(u8 mot)
 {
-	u8 res;
+	u8 res = 0;
 	switch (mot)
 	{
 	case 1:

@@ -48,13 +48,13 @@
 
 struct AboutFlash_typeDef
 {
-	vu8 DeviceID[9];
-	vu8 Version[21];
-	vu8 ServerParams[101];
-	vu8 IgnoreLock[12];
+	u8 DeviceID[9];
+	u8 Version[21];
+	u8 ServerParams[101];
+	u8 IgnoreLock[12];
 	vu32 WifiFlag;
-	vu8 WifiSSID[101];
-	vu8 WifiPWD[101];
+	u8 WifiSSID[101];
+	u8 WifiPWD[101];
 	vu32 IAPFlag;
 };
 extern struct AboutFlash_typeDef MyFlashParams;

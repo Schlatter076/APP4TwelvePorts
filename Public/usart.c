@@ -18,11 +18,11 @@ void USART1_Init(u32 bound)
 	//=====================================================================================================
 	DMA_USART_Tx_Init(USART1, RCC_AHB1Periph_DMA2, DMA2_Stream7_IRQn, 3, 1,
 	DMA2_Stream7, DMA_Channel_4, (uint32_t) (&USART1->DR),
-			(uint32_t) USART1_Fram.TxBuf, BASE64_BUF_LEN, DMA_Priority_Low);
+			(uint32_t) USART1_Fram.TxBuf, BASE64_BUF_LEN, DMA_Priority_Medium);
 
 	DMA_USART_Rx_Init(USART1, RCC_AHB1Periph_DMA2, DMA2_Stream2, DMA_Channel_4,
 			(uint32_t) (&USART1->DR), (uint32_t) USART1_Fram.RxBuf,
-			TCP_MAX_LEN, DMA_Priority_Medium);
+			TCP_MAX_LEN, DMA_Priority_High);
 	//=====================================================================================================
 	USART_InitStructure.USART_BaudRate = bound; //波特率设置
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b; //字长为8位数据格式
@@ -57,26 +57,6 @@ void USART1_Init(u32 bound)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP; //推挽复用输出
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP; //上拉
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
-}
-/**
- * 串口1输出数据
- * @fmt 格式化参数
- * @return 无
- */
-void Debug_Printf(const char *fmt, ...)
-{
-	va_list ap;
-	//等待空闲,防止数据不同步
-	while (USART1_Fram.DMA_Tx_Busy)
-		;
-	USART1_Fram.DMA_Tx_Busy = 1;
-	va_start(ap, fmt);
-	vsprintf((char *) USART1_Fram.TxBuf, fmt, ap);
-	va_end(ap);
-	//设置传输数据长度
-	DMA_SetCurrDataCounter(DMA2_Stream7, strlen((const char *) USART1_Fram.TxBuf));
-	//打开DMA,开始发送
-	DMA_Cmd(DMA2_Stream7, ENABLE);
 }
 
 void DMA2_Stream7_IRQHandler(void)

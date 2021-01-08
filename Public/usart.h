@@ -20,8 +20,5 @@
 #include <stdio.h>
 
 void USART1_Init(u32 bound);
-void Debug_Printf(const char *fmt, ...);
-
-
 
 #endif /* USART_H_ */

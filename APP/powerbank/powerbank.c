@@ -13,6 +13,10 @@ struct USART6_Fram_TypeDef USART6_Fram =
 struct Powerbank_Params_TypeDef PowerbankSTA =
 { 0 };
 
+/**卡口状态*/
+const unsigned char bat_statuBuf[16] =
+{ 1, 0, 9, 8, 3, 2, 11, 10, 0xFF, 0xFF, 5, 4, 0xFF, 0xFF, 7, 6 };
+
 void USART6_Init(u32 bound)
 {
 	//GPIO端口设置
@@ -406,6 +410,91 @@ void setBATInstruction(u8 port, u8 sta)
 			HC595_STATUS.fastBLINK[port] = 1; //快闪
 		}
 	}
+}
+/**
+ * 检查充电宝状态
+ * @i 0-11
+ */
+u8 checkPowerbankStatus(u8 i)
+{
+	u8 pbStatu = 0;
+	u8 motorStatu = 0;
+	u8 communicationStatu = 0;
+	u8 index = 0;
+	u8 pbERROR = 0;
+	u16 len = 0;
+	u8 portSTA = 0;
+	OS_ERR err;
+	len = fillDataToTxBuf(BAT_Down_Admin, 0, NULL);
+	pbStatu = getBatSwitchSTA(i + 1);
+	motorStatu = getMotorSwitchSTA(i + 1);
+	//如果当前卡口未通电,则先通电
+	if (!PowerbankSTA.Charging[i])
+	{
+		controlPowerBankCharge(i + 1, 1);
+	}
+	_USART6_CTL = 1; //串口6发送使能
+	communicateWithPort(i + 1); //接通对应串口通信线
+	USART6_DMA_Send(len); //向充电宝发送数据
+	//等待数据发送完成
+	OSFlagPend((OS_FLAG_GRP*) &EventFlags,  //事件标志组
+			(OS_FLAGS) 0x01, //事件位
+			(OS_TICK) 0,    //超时时间
+			(OS_OPT) OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_FLAG_CONSUME, //等待置位并清除
+			(CPU_TS*) 0,    //时间戳
+			(OS_ERR*) &err); //错误码
+	_USART6_CTL = 0; //串口6接收使能
+	//等待数据接收,超时50ms
+	OSFlagPend((OS_FLAG_GRP*) &EventFlags,  //事件标志组
+			(OS_FLAGS) 0x02, //事件位
+			(OS_TICK) 10,    //超时时间
+			(OS_OPT) OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_FLAG_CONSUME, //等待置位并清除
+			(CPU_TS*) 0,    //时间戳
+			(OS_ERR*) &err); //错误码
+	if (err != OS_ERR_TIMEOUT) //正确接收到数据
+	{
+		app_frame_anasys(USART6_Fram.RxBuf, USART6_Fram.AccessLen);
+		communicationStatu = 1;
+	}
+	else //超时未收到信号量信息
+	{
+		communicationStatu = 0;
+	}
+	index = (pbERROR << 3) | (pbStatu << 2) | (communicationStatu << 1)
+			| (motorStatu << 0);
+	//查状态表
+	portSTA = bat_statuBuf[index];
+	//增加判断============Begin============
+	if (portSTA == 11 || portSTA == 1) //有电池，锁弹出异常，通信正常
+	{
+		if (MyFlashParams.IgnoreLock[i] == 1) //设置了忽略锁状态
+		{
+			portSTA = (portSTA == 11) ? 10 : 0;
+		}
+	}
+	//增加判断============End============
+	setBATInstruction(i, portSTA);  //配置卡口状态
+	//清除当前状态数组的值
+	memset(PowerbankSTA.powerBankBuf[i], '\0', 18);
+	if (communicationStatu) //如果正常有通信
+	{
+		if (pbERROR) //充电宝上报错误信息
+		{
+			snprintf(PowerbankSTA.powerBankBuf[i], 18, "%d_%d_%02X_%s", i,
+					portSTA, PowerbankSTA.ERROR, PowerbankSTA.BatID);
+		}
+		else //正常通信状态
+		{
+			snprintf(PowerbankSTA.powerBankBuf[i], 18, "%d_%d_%d_%s", i,
+					portSTA, PowerbankSTA.VOL, PowerbankSTA.BatID);
+		}
+	}
+	else //未接收到充电宝发来的数据
+	{
+		snprintf(PowerbankSTA.powerBankBuf[i], 18, "%d_%d", i, portSTA);
+	}
+	//===========================================================================
+	return portSTA;
 }
 
 /**

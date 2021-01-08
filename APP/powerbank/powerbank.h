@@ -68,8 +68,9 @@ struct Powerbank_Params_TypeDef
 	u8 ERROR;
 	u16 CUR;
 	u8 Charging[12];
-	vu8 ChargingCnt;
+	u8 ChargingCnt;
 	u8 BatID[9];
+	u8 currentStatuCode[12];
 	char powerBankBuf[12][18];
 };
 extern struct Powerbank_Params_TypeDef PowerbankSTA;
@@ -98,7 +99,7 @@ void controlPowerBankCharge(u8 pb, u8 allow);
 void USART6_Init(u32 bound);
 void communicateWithPort(u8 port);
 void Powerbank_Init(u32 bound);
-
+u8 checkPowerbankStatus(u8 i);
 void USART6_DMA_Send(u16 size);
 
 #endif /* POWERBANK_POWERBANK_H_ */

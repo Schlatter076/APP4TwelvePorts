@@ -6,6 +6,8 @@
 #include "powerbank.h"
 #include "backlight.h"
 #include "HTim.h"
+#include "F4G.h"
+#include "wifi.h"
 
 int main(void)
 {
@@ -21,6 +23,8 @@ int main(void)
 	Powerbank_Init(115200);
 	Backlight_Init();
 	TIM3_Init(5000-1,8400-1); //定时器时钟84M 分频8400 周期=5000/10000S
+	F4G_Init(115200);
+	WIFI_Init(115200);
 
 
 #if SYSTEM_SUPPORT_OS

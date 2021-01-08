@@ -30,6 +30,7 @@ struct STRUCT_USART_Fram  //定义一个全局串口数据帧的处理结构体
 //	char *base64Str;
 //	unsigned char ServerData[BASE64_BUF_LEN];
 //	unsigned char *Server_Command[2];
+	__IO u8 Online;
 	__IO u8 linkedClosed;
 //	__IO u8 allowProcessServerData;
 //	__IO u8 init;
@@ -66,8 +67,6 @@ struct STRUCT_USART_Params
 	int port;
 	char dd[20];
 	__IO u8 play;
-//	u8 statuCode[12];
-	u8 currentStatuCode[12];
 	__IO u8 checkPBst;
 	__IO u8 process4G;
 	__IO u8 processWIFI;
@@ -88,6 +87,11 @@ struct RegisterFram	  //定义一个全局串口数据帧的处理结构体
 	char port[6];
 };
 extern struct RegisterFram RegisterParams;
+typedef struct
+{
+	char *expect;
+	u16 timeout;
+} AT_ResponseTypeDef;
 //===================枚举========================================================
 typedef enum
 {
@@ -151,5 +155,6 @@ typedef enum
 } ENUM_tcpUP_TypeDef;
 
 void AnalyzeServerParams(void);
+void _USART_Printf(ENUM_Internet_TypeDef net, const char *fmt, ...);
 
 #endif /* _TCP_PUBLIC_H_ */
