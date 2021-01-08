@@ -93,7 +93,7 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 #if SYSTEM_SUPPORT_OS
 		//推送发送完成
 		OSFlagPost((OS_FLAG_GRP*) &EventFlags, //对应的事件标志组
-				(OS_FLAGS) 0x08, //事件位
+				(OS_FLAGS) FLAG_USART1_TxED, //事件位
 				(OS_OPT) OS_OPT_POST_FLAG_SET, //选择置位
 				(OS_ERR*) &err); //错误码
 #endif
@@ -113,7 +113,7 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 #if SYSTEM_SUPPORT_OS
 		//推送接收完成
 		OSFlagPost((OS_FLAG_GRP*) &EventFlags, //对应的事件标志组
-				(OS_FLAGS) 0x10, //事件位
+				(OS_FLAGS) FLAG_USART1_RxED, //事件位
 				(OS_OPT) OS_OPT_POST_FLAG_SET, //选择置位
 				(OS_ERR*) &err); //错误码
 #endif

@@ -23,51 +23,48 @@
 OS_TCB StartTaskTCB;             			//任务控制块
 extern u8 *START_TASK_STK;       			//任务堆栈
 void start_task(void *p_arg);
-//充电宝卡口检测任务
-#define BAT_TASK_PRIO  4        			//任务优先级
-#define BAT_STK_SIZE   128					//任务堆栈大小
-OS_TCB  BatTaskTCB;							//任务控制块
-CPU_STK BAT_TASK_STK[BAT_STK_SIZE];   		//任务堆栈
-void bat_task(void *p_arg);
-//卡口状态上报任务
-#define REPORT_TASK_PRIO  5  				//任务优先级
-#define REPORT_STK_SIZE   128  				//任务堆栈大小
-OS_TCB  ReportTaskTCB;						//任务控制块
-CPU_STK REPORT_TASK_STK[REPORT_STK_SIZE];   	//任务堆栈
-void report_task(void *p_arg);
-//串口1数据解析任务
-#define USART1_TASK_PRIO  6  				//任务优先级
-#define USART1_STK_SIZE   128  				//任务堆栈大小
-OS_TCB  USART1TaskTCB;						//任务控制块
-CPU_STK USART1_TASK_STK[REPORT_STK_SIZE];   	//任务堆栈
-void usart1_task(void *p_arg);
+//数据解析任务
+#define ANALYSE_TASK_PRIO  4  				//任务优先级
+#define ANALYSE_STK_SIZE   128  				//任务堆栈大小
+OS_TCB AnalyseTaskTCB;						//任务控制块
+CPU_STK ANALYSE_TASK_STK[ANALYSE_STK_SIZE];   	//任务堆栈
+void analyse_task(void *p_arg);
 //服务器数据处理任务
-#define PROCESS_SERVER_TASK_PRIO  7  				//任务优先级
+#define PROCESS_SERVER_TASK_PRIO  5  				//任务优先级
 #define PROCESS_SERVER_STK_SIZE   128  				//任务堆栈大小
-OS_TCB  Process_SeverTaskTCB;						//任务控制块
+OS_TCB Process_SeverTaskTCB;						//任务控制块
 CPU_STK PROCESS_SERVER_TASK_STK[PROCESS_SERVER_STK_SIZE];   	//任务堆栈
 void process_server_task(void *p_arg);
+//充电宝卡口检测任务
+#define BAT_TASK_PRIO  6        			//任务优先级
+#define BAT_STK_SIZE   128					//任务堆栈大小
+OS_TCB BatTaskTCB;							//任务控制块
+CPU_STK BAT_TASK_STK[BAT_STK_SIZE];   		//任务堆栈
+void bat_task(void *p_arg);
 //=========任务管理器===============================
 //=========软件定时器===============================
-OS_TMR 	Stmr1;
+OS_TMR Stmr1;
 void Stmr1_callback(void *p_tmr, void *p_arg);
-OS_TMR 	Stmr2;
+OS_TMR Stmr2;
 void Stmr2_callback(void *p_tmr, void *p_arg);
-OS_TMR 	Stmr3;
+OS_TMR Stmr3;
 void Stmr3_callback(void *p_tmr, void *p_arg);
-OS_TMR 	Stmr4;
+OS_TMR Stmr4;
 void Stmr4_callback(void *p_tmr, void *p_arg);
 //=========软件定时器===============================
 //=========事件标志组===============================
-/**
- * 定义一个事件标志组
- * bit0-0x01-串口6发送完成
- * bit1-0x02-串口6接收到数据
- * bit2-0x04-卡口检测完成标志
- * bit3-0x08-串口1发送完成
- * bit4-0x10-串口1接收到数据
- */
-OS_FLAG_GRP	EventFlags;
+#define FLAG_USART6_TxED  ((OS_FLAGS)0x01)
+#define FLAG_USART6_RxED  ((OS_FLAGS)0x02)
+#define FLAG_SCAN_COMP    ((OS_FLAGS)0x04)
+#define FLAG_USART1_TxED  ((OS_FLAGS)0x08)
+#define FLAG_USART1_RxED  ((OS_FLAGS)0x10)
+#define FLAG_USART3_TxED  ((OS_FLAGS)0x20)
+#define FLAG_USART3_RxED  ((OS_FLAGS)0x40)
+#define FLAG_USART2_TxED  ((OS_FLAGS)0x80)
+#define FLAG_USART2_RxED  ((OS_FLAGS)0x0100)
+#define FLAG_WIFI_AT      ((OS_FLAGS)0x0200)
+#define FLAG_F4G_AT       ((OS_FLAGS)0x0400)
+OS_FLAG_GRP EventFlags;
 //=========事件标志组===============================
 
 #endif /* TASK_H_ */

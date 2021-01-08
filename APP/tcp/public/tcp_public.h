@@ -17,6 +17,7 @@
 #include "delay.h"
 #include "malloc.h"
 #include "STMFlash.h"
+#include "task.h"
 
 #define TCP_MAX_LEN 640		  //最大接收缓存字节数
 #define BASE64_BUF_LEN 512
@@ -40,6 +41,7 @@ struct STRUCT_USART_Fram  //定义一个全局串口数据帧的处理结构体
 //	__IO u8 allowHeart;
 	__IO u8 forceHeart_32;
 	__IO u8 forceHeart_90;
+	__IO u8 NowInAT;
 	__IO u8 AT_test_OK;
 	vu8 DMA_Tx_Busy;
 	vu16 AccessLen;
@@ -154,7 +156,12 @@ typedef enum
 	UP_OrderPopupPowerbank = 41,
 } ENUM_tcpUP_TypeDef;
 
+
 void AnalyzeServerParams(void);
 void _USART_Printf(ENUM_Internet_TypeDef net, const char *fmt, ...);
+bool Send_AT_Cmd(ENUM_Internet_TypeDef internet, char *cmd, char *ack1,
+		char *ack2, u32 time);
+bool AT_Test(ENUM_Internet_TypeDef internet);
+void DEBUG(const char *fmt, ...);
 
 #endif /* _TCP_PUBLIC_H_ */

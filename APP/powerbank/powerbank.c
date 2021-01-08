@@ -438,7 +438,7 @@ u8 checkPowerbankStatus(u8 i)
 	USART6_DMA_Send(len); //向充电宝发送数据
 	//等待数据发送完成
 	OSFlagPend((OS_FLAG_GRP*) &EventFlags,  //事件标志组
-			(OS_FLAGS) 0x01, //事件位
+			(OS_FLAGS) FLAG_USART6_TxED, //事件位
 			(OS_TICK) 0,    //超时时间
 			(OS_OPT) OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_FLAG_CONSUME, //等待置位并清除
 			(CPU_TS*) 0,    //时间戳
@@ -446,7 +446,7 @@ u8 checkPowerbankStatus(u8 i)
 	_USART6_CTL = 0; //串口6接收使能
 	//等待数据接收,超时50ms
 	OSFlagPend((OS_FLAG_GRP*) &EventFlags,  //事件标志组
-			(OS_FLAGS) 0x02, //事件位
+			(OS_FLAGS) FLAG_USART6_RxED, //事件位
 			(OS_TICK) 10,    //超时时间
 			(OS_OPT) OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_FLAG_CONSUME, //等待置位并清除
 			(CPU_TS*) 0,    //时间戳
@@ -588,7 +588,7 @@ void USART6_IRQHandler(void)                	//串口1中断服务程序
 #if SYSTEM_SUPPORT_OS
 		//推送发送完成
 		OSFlagPost((OS_FLAG_GRP*) &EventFlags, //对应的事件标志组
-				(OS_FLAGS) 0x01, //事件位
+				(OS_FLAGS) FLAG_USART6_TxED, //事件位
 				(OS_OPT) OS_OPT_POST_FLAG_SET, //选择置位
 				(OS_ERR*) &err); //错误码
 #endif
@@ -608,7 +608,7 @@ void USART6_IRQHandler(void)                	//串口1中断服务程序
 #if SYSTEM_SUPPORT_OS
 		//推送接收完成
 		OSFlagPost((OS_FLAG_GRP*) &EventFlags, //对应的事件标志组
-				(OS_FLAGS) 0x02, //事件位
+				(OS_FLAGS) FLAG_USART6_RxED, //事件位
 				(OS_OPT) OS_OPT_POST_FLAG_SET, //选择置位
 				(OS_ERR*) &err); //错误码
 #endif

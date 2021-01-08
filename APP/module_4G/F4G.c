@@ -106,7 +106,7 @@ void USART3_IRQHandler(void)
 #if SYSTEM_SUPPORT_OS
 		//推送发送完成
 		OSFlagPost((OS_FLAG_GRP*) &EventFlags, //对应的事件标志组
-				(OS_FLAGS) 0x20, //事件位
+				(OS_FLAGS) FLAG_USART3_TxED, //事件位
 				(OS_OPT) OS_OPT_POST_FLAG_SET, //选择置位
 				(OS_ERR*) &err); //错误码
 #endif
@@ -126,7 +126,7 @@ void USART3_IRQHandler(void)
 #if SYSTEM_SUPPORT_OS
 		//推送接收完成
 		OSFlagPost((OS_FLAG_GRP*) &EventFlags, //对应的事件标志组
-				(OS_FLAGS) 0x40, //事件位
+				(OS_FLAGS) FLAG_USART3_RxED, //事件位
 				(OS_OPT) OS_OPT_POST_FLAG_SET, //选择置位
 				(OS_ERR*) &err); //错误码
 #endif
