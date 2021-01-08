@@ -45,6 +45,7 @@
 #define ADDR_FLASH_SECTOR_10    ((u32)0x080C0000) 	//扇区10起始地址,128 Kbytes
 #define ADDR_FLASH_SECTOR_11    ((u32)0x080E0000) 	//扇区11起始地址,128 Kbytes
 
+#define WIFI_FLAG  ((u32)0x5746)
 
 struct AboutFlash_typeDef
 {

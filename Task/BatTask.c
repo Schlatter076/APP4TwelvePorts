@@ -21,12 +21,9 @@ void bat_task(void *p_arg)
 			{
 				PowerbankSTA.currentStatuCode[i] = portSTA;
 				//上报卡口状态
-				_USART_Printf(InUsart1, "%s,%d,%s-%s", MyFlashParams.DeviceID,
-						UP_PowerbankSTAChanged,
-						PowerbankSTA.powerBankBuf[i], "aaaaa");
 				if (F4G_Fram.Online)
 				{
-
+					reportPortStatuChanged(In4G, i);
 				}
 				if (WIFI_Fram.Online)
 				{

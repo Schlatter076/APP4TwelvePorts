@@ -15,6 +15,9 @@
 #include "powerbank.h"
 #include "L74HC595.h"
 #include "tcp_public.h"
+#include "F4G.h"
+#include "wifi.h"
+#include "base64.h"
 
 //=========任务管理器===============================
 //开始任务-用来创建其他任务,只运行一次

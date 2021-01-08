@@ -51,7 +51,7 @@ void start_task(void *p_arg)
 			(OS_ERR *) &err);		//返回的错误码
 	OSTmrCreate((OS_TMR *) &Stmr3,		 //定时器
 			(CPU_CHAR *) "Stmr3",	//定时器名字
-			(OS_TICK) 200,			//300*10=3S
+			(OS_TICK) 300,			//300*10=3S
 			(OS_TICK) 0,   			//无周期
 			(OS_OPT) OS_OPT_TMR_ONE_SHOT, 	//单次定时器
 			(OS_TMR_CALLBACK_PTR) Stmr3_callback,	//定时器2回调函数

@@ -12,8 +12,9 @@ void analyse_task(void *p_arg)
 	p_arg = p_arg;
 	char *res = NULL;
 	char net = 0;
-	vu16 DecryptionLen = 0;
+	bool needDecrypt = false;
 	char *DecryptionBuf = NULL;
+	char *DecryptionTemBuf = NULL;
 	OS_FLAGS flag;
 	struct STRUCT_USART_Fram *fram;
 	while (1)
@@ -38,11 +39,13 @@ void analyse_task(void *p_arg)
 		{
 			fram = &F4G_Fram;
 			net = '1';
+			needDecrypt = true;
 		}
 		else if (flag == FLAG_USART2_RxED)
 		{
 			fram = &WIFI_Fram;
 			net = '2';
+			needDecrypt = true;
 		}
 		res = strchr((const char *) fram->RxBuf, '[');
 		if (res && strchr((const char *) fram->RxBuf, ']'))
@@ -51,17 +54,30 @@ void analyse_task(void *p_arg)
 			if (strchr(res, '[')) //判断是否还有字符'[',防止数据出错
 			{
 				res = strchr(res, '[');
+				res += 1; //跳过字符'['
 			}
-			DecryptionLen = strlen(res);
-			if (DecryptionLen > 3)  //跳过空心跳
+			if (fram->AccessLen > 3)  //跳过空心跳
 			{
-				DecryptionBuf = mymalloc(DecryptionLen);
-				memset(DecryptionBuf, '\0', DecryptionLen);
-				res = strchr(res, ','); //跳过设备编号
+				DecryptionTemBuf = mymalloc(BASE64_BUF_LEN);
+				DecryptionBuf = mymalloc(BASE64_BUF_LEN);
+				memset(DecryptionTemBuf, '\0', BASE64_BUF_LEN);
+				memset(DecryptionBuf, '\0', BASE64_BUF_LEN);
+				res = strtok(res, "]"); //取出实际的数据
+				if (needDecrypt)
+				{
+					needDecrypt = false;
+					base64_decode(res, (unsigned char *)DecryptionTemBuf);
+				}
+				else
+				{
+					strcpy(DecryptionTemBuf, res);
+				}
+				res = strchr(DecryptionTemBuf, ','); //跳过设备编号
 				res += 1;  //跳过字符','
 				DecryptionBuf[0] = net;
 				DecryptionBuf[1] = ','; //添加标识数据头
-				strcat(DecryptionBuf, strtok(res, "]"));
+				strcat(DecryptionBuf, res);
+				myfree(DecryptionTemBuf);  //释放临时资源
 				//推送消息到数据处理任务
 				OSTaskQPost((OS_TCB*) &Process_SeverTaskTCB, //待发送消息的任务控制块
 						(void*) DecryptionBuf,      //待发送的数据

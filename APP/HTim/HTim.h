@@ -9,6 +9,7 @@
 #define HTIM_HTIM_H_
 
 #include "backlight.h"
+#include "tcp_public.h"
 #if SYSTEM_SUPPORT_OS
 #include "includes.h"
 #endif

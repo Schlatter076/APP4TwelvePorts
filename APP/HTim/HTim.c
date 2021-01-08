@@ -45,7 +45,11 @@ void TIM3_IRQHandler(void)
 	if (TIM_GetITStatus(TIM3, TIM_IT_Update) == SET) //溢出中断
 	{
 		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);  //清除标志位
-		BACK_LIGHT_STA ^= 1;
+		//未上线
+		if (!F4G_Fram.Online && !WIFI_Fram.Online)
+		{
+			BACK_LIGHT_STA ^= 1;
+		}
 	}
 #if SYSTEM_SUPPORT_OS
 	OSIntExit(); //退出中断

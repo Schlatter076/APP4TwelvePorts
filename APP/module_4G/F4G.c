@@ -72,6 +72,117 @@ void F4G_Init(u32 bound)
 	USART3_Init(bound);
 }
 
+/**
+ * 通过4G网络连接到服务器
+ * @addr IP地址或域名
+ * @port 端口
+ * @return
+ */
+bool ConnectToServerBy4G(char* addr, char* port)
+{
+	bool res = false;
+	char *p = mymalloc(100);
+	sprintf(p, "AT+CIPSTART=\"TCP\",\"%s\",%s", addr, port);
+	Send_AT_Cmd(In4G, "AT+CIPSHUT", "SHUT OK", NULL, 100, 2);
+	Send_AT_Cmd(In4G, "AT+CREG?", "OK", NULL, 100, 2);
+	Send_AT_Cmd(In4G, "AT+CGATT?", "OK", NULL, 100, 2);
+	//单链接
+	Send_AT_Cmd(In4G, "AT+CIPMUX=0", "OK", NULL, 100, 2);
+	//快传
+	Send_AT_Cmd(In4G, "AT+CIPQSEND=1", "OK", NULL, 100, 2);
+	if (TCP_Params.cops == '3')
+	{
+		Send_AT_Cmd(In4G, "AT+CSTT=cmiot", "OK", NULL, 360, 2);
+	}
+	else if (TCP_Params.cops == '6')
+	{
+		Send_AT_Cmd(In4G, "AT+CSTT=UNIM2M.NJM2MAPN", "OK", NULL, 360, 2);
+	}
+	else if (TCP_Params.cops == '9')
+	{
+		Send_AT_Cmd(In4G, "AT+CSTT=CTNET", "OK", NULL, 360, 2);
+	}
+	Send_AT_Cmd(In4G, "AT+CIICR", "OK", NULL, 100, 2);
+	Send_AT_Cmd(In4G, "AT+CIFSR", "OK", NULL, 100, 2);
+	Send_AT_Cmd(In4G, p, "CONNECT", NULL, 360, 2);
+	res = Send_AT_Cmd(In4G, "AT+CIPSTATUS", "CONNECT OK", NULL, 360, 2);
+	myfree(p);
+	return res;
+}
+/***********************以下开始为与服务器通信业务代码部分*************************************/
+void getModuleMes(void)
+{
+	unsigned char *result = NULL;
+	u8 inx = 0;
+	//获取物联网卡号
+	while (!Send_AT_Cmd(In4G, "AT+ICCID", "+ICCID:", NULL, 100, 2))
+		;
+	result = F4G_Fram.RxBuf;
+	inx = 0;
+	while (!(*result <= '9' && *result >= '0'))
+	{
+		result++;
+	}
+	//当值为字母和数字时
+	while ((*result <= '9' && *result >= '0')
+			|| (*result <= 'Z' && *result >= 'A')
+			|| (*result <= 'z' && *result >= 'a'))
+	{
+		TCP_Params.ccid[inx++] = *result;
+		result++;
+	}
+	DEBUG("CCID=%s\r\n", TCP_Params.ccid);
+
+	//获取模块网络信息
+	while (!Send_AT_Cmd(In4G, "AT+COPS=0,1", "OK", NULL, 200, 2))
+		;
+	while (!Send_AT_Cmd(In4G, "AT+COPS?", "+COPS", NULL, 100, 2))
+		;
+	if ((bool) strstr((const char *) F4G_Fram.RxBuf, "CMCC"))
+	{
+		TCP_Params.cops = '3';
+	}
+	else if ((bool) strstr((const char *) F4G_Fram.RxBuf, "UNICOM"))
+	{
+		TCP_Params.cops = '6';
+	}
+	else
+	{
+		TCP_Params.cops = '9';
+	}
+	DEBUG("COPS is \"%c\"\r\n", TCP_Params.cops);
+	//获取信号
+	while (!Send_AT_Cmd(In4G, "AT+CSQ", "+CSQ", NULL, 100, 2))
+		;
+	result = F4G_Fram.RxBuf;
+	while (*result++ != ':')
+		;
+	result++;
+	TCP_Params.rssi = atoi(strtok((char *) result, ","));
+	DEBUG("CSQ is %d\r\n", TCP_Params.rssi);
+}
+
+/**
+ * 通过4G网络发送数据
+ * @data 待发送的数据
+ * 无返回
+ */
+void Module4G_Send(const char *data)
+{
+	char *p_str;
+	char *buf = mymalloc(20);
+	p_str = mymalloc(BASE64_BUF_LEN);
+	base64_encode((const unsigned char *)data, p_str);
+	snprintf(buf, 20, "AT+CIPSEND=%d", strlen((const char *) p_str) + 3);
+	if (Send_AT_Cmd(In4G, buf, ">", NULL, 200, 2))
+	{
+		_USART_Printf(In4G, "{(%s}", p_str);
+		DEBUG("<<%s", data);
+	}
+	myfree(p_str);
+	myfree(buf);
+}
+
 void DMA1_Stream3_IRQHandler(void)
 {
 #if SYSTEM_SUPPORT_OS
@@ -120,8 +231,7 @@ void USART3_IRQHandler(void)
 		//清除标志位
 		DMA_ClearFlag(DMA1_Stream1, DMA_FLAG_TCIF1);
 		//获得接收帧帧长
-		F4G_Fram.AccessLen = TCP_MAX_LEN
-				- DMA_GetCurrDataCounter(DMA1_Stream1);
+		F4G_Fram.AccessLen = TCP_MAX_LEN - DMA_GetCurrDataCounter(DMA1_Stream1);
 		//这里可以通知任务来处理数据
 #if SYSTEM_SUPPORT_OS
 		//推送接收完成

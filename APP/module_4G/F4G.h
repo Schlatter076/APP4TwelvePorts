@@ -14,5 +14,8 @@
 #define _F4G_RST     (PEout(15))
 
 void F4G_Init(u32 bound);
+bool ConnectToServerBy4G(char* addr, char* port);
+void getModuleMes(void);
+void Module4G_Send(const char *data);
 
 #endif /* MODULE_4G_F4G_H_ */

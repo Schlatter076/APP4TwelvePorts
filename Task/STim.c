@@ -13,6 +13,7 @@
  */
 void Stmr1_callback(void *p_tmr, void *p_arg)
 {
+	forceHeart(In4G, UP_AllPortsSTA);
 }
 /**
  * 软件定时器2
@@ -21,6 +22,7 @@ void Stmr1_callback(void *p_tmr, void *p_arg)
  */
 void Stmr2_callback(void *p_tmr, void *p_arg)
 {
+	forceHeart(InWifi, UP_AllPortsSTA);
 }
 /**
  * 软件定时器3

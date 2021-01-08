@@ -18,6 +18,7 @@
 #include "malloc.h"
 #include "STMFlash.h"
 #include "task.h"
+#include "motor.h"
 
 #define TCP_MAX_LEN 640		  //最大接收缓存字节数
 #define BASE64_BUF_LEN 512
@@ -39,21 +40,21 @@ struct STRUCT_USART_Fram  //定义一个全局串口数据帧的处理结构体
 //	__IO u8 firstStatuHeartNotSucc;
 //	__IO u8 serverStatuCnt;
 //	__IO u8 allowHeart;
-	__IO u8 forceHeart_32;
-	__IO u8 forceHeart_90;
-	__IO u8 NowInAT;
+//	__IO u8 forceHeart_32;
+//	__IO u8 forceHeart_90;
+//	__IO u8 NowInAT;
 	__IO u8 AT_test_OK;
 	vu8 DMA_Tx_Busy;
 	vu16 AccessLen;
-	union
-	{
-		__IO u16 InfAll;
-		struct
-		{
-			__IO u16 Length :15;                               // 14:0
-			__IO u16 FinishFlag :1;                                // 15
-		} InfBit;
-	};
+//	union
+//	{
+//		__IO u16 InfAll;
+//		struct
+//		{
+//			__IO u16 Length :15;                               // 14:0
+//			__IO u16 FinishFlag :1;                                // 15
+//		} InfBit;
+//	};
 };
 
 extern struct STRUCT_USART_Fram F4G_Fram;
@@ -66,13 +67,13 @@ struct STRUCT_USART_Params
 	unsigned char ccid[24];
 	unsigned char cops;
 	u8 rssi; //信号强度
-	int port;
-	char dd[20];
-	__IO u8 play;
-	__IO u8 checkPBst;
-	__IO u8 process4G;
-	__IO u8 processWIFI;
-	__IO u8 processUSART1;
+//	int port;
+//	char dd[20];
+//	__IO u8 play;
+//	__IO u8 checkPBst;
+//	__IO u8 process4G;
+//	__IO u8 processWIFI;
+//	__IO u8 processUSART1;
 	__IO u8 wifiParamModified;
 };
 extern struct STRUCT_USART_Params TCP_Params;
@@ -89,11 +90,6 @@ struct RegisterFram	  //定义一个全局串口数据帧的处理结构体
 	char port[6];
 };
 extern struct RegisterFram RegisterParams;
-typedef struct
-{
-	char *expect;
-	u16 timeout;
-} AT_ResponseTypeDef;
 //===================枚举========================================================
 typedef enum
 {
@@ -160,8 +156,28 @@ typedef enum
 void AnalyzeServerParams(void);
 void _USART_Printf(ENUM_Internet_TypeDef net, const char *fmt, ...);
 bool Send_AT_Cmd(ENUM_Internet_TypeDef internet, char *cmd, char *ack1,
-		char *ack2, u32 time);
+		char *ack2, u32 time, u16 retry);
 bool AT_Test(ENUM_Internet_TypeDef internet);
 void DEBUG(const char *fmt, ...);
+void getWifiSsidAndPwd(char *datas);
+void getRegisterStr(char *strBuf, int len, ENUM_tcpUP_TypeDef upCMD,
+		char moduleType);
+void getRequestStrWithoutParam(char *strBuf, int len, ENUM_tcpUP_TypeDef upCMD);
+void getPowerbankSTAStr(char *strBuf, int len, ENUM_tcpUP_TypeDef upCMD,
+		u8 rssi, int portNum, char *portSTAStr, ...);
+void getPowerbankSTAStrWithoutRSSI(char *strBuf, int len,
+		ENUM_tcpUP_TypeDef upCMD, int portNum, char *portSTAStr, ...);
+void ProcessServerCmd(ENUM_Internet_TypeDef internet,
+		ENUM_tcpDOWN_TypeDef DownCMD, char *SData);
+void systemPopup(ENUM_Internet_TypeDef internet, char *data);
+void orderPopup(ENUM_Internet_TypeDef internet, char *data);
+void modifyLockSTA(char *data);
+void commonHeart(ENUM_Internet_TypeDef internet);
+void forceHeart(ENUM_Internet_TypeDef internet, ENUM_tcpUP_TypeDef upCmd);
+void responseReset(ENUM_Internet_TypeDef internet);
+void reportPortStatuChanged(ENUM_Internet_TypeDef internet, u8 port);
+void request4Register(ENUM_Internet_TypeDef internet);
+void setWifiSsidAndPwd(ENUM_Internet_TypeDef internet, char *data);
+void getRegisterParams(ENUM_Internet_TypeDef internet, char *data);
 
 #endif /* _TCP_PUBLIC_H_ */
