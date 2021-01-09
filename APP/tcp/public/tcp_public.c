@@ -156,8 +156,8 @@ void DEBUG(const char *fmt, ...)
 bool Send_AT_Cmd(ENUM_Internet_TypeDef internet, char *cmd, char *ack1,
 		char *ack2, u32 time, u16 retry)
 {
-	struct STRUCT_USART_Fram *USART_Fram;
-	OS_FLAGS flag;
+	struct STRUCT_USART_Fram *USART_Fram = NULL;
+	OS_FLAGS flag = 0;
 	OS_ERR err;
 	bool ret = false;
 	u16 cnt = 0;
@@ -235,13 +235,12 @@ bool AT_Test(ENUM_Internet_TypeDef internet)
 	}
 	while (count++ < 8)
 	{
-		Send_AT_Cmd(internet, "AT", "OK", NULL, 100, 2);
-	}
-	if (Send_AT_Cmd(internet, "AT", "OK", NULL, 100, 2))
-	{
-		DEBUG("test %s success!\r\n", module);
-		myfree(module);
-		return 1;
+		if (Send_AT_Cmd(internet, "AT", "OK", NULL, 100, 2))
+		{
+			DEBUG("test %s success!\r\n", module);
+			myfree(module);
+			return 1;
+		}
 	}
 	DEBUG("test %s fail!\r\n", module);
 	myfree(module);
@@ -391,7 +390,6 @@ void getPowerbankSTAStrWithoutRSSI(char *strBuf, int len,
 void ProcessServerCmd(ENUM_Internet_TypeDef internet,
 		ENUM_tcpDOWN_TypeDef DownCMD, char *SData)
 {
-	OS_ERR err;
 	switch (DownCMD)
 	{
 	case DOWN_RegiseterSucc:
@@ -400,13 +398,12 @@ void ProcessServerCmd(ENUM_Internet_TypeDef internet,
 	case DOWN_RecivedAllPortsSTA:
 		if (internet == In4G)
 		{
-			OSTmrStop(&Stmr1, OS_OPT_TMR_NONE, 0, &err);
+			F4G_Fram.firstStatuHeartNotSucc = 0;
 		}
 		else if (internet == InWifi)
 		{
-			OSTmrStop(&Stmr2, OS_OPT_TMR_NONE, 0, &err);
+			WIFI_Fram.firstStatuHeartNotSucc = 0;
 		}
-		OSTaskResume(&BatTaskTCB, &err);
 		break;
 	case DOWN_RecivedStatuHeart:
 
@@ -427,7 +424,7 @@ void ProcessServerCmd(ENUM_Internet_TypeDef internet,
 
 		break;
 	case DOWN_ForceHeart:
-		forceHeart(internet, UP_ForceHeart);
+		forceHeart(internet, UP_ForceHeart, ENABLE);
 		break;
 	case DOWN_DeviceReset:
 		responseReset(internet);
@@ -486,7 +483,7 @@ void systemPopup(ENUM_Internet_TypeDef internet, char *data)
 		}
 		else if (internet == InWifi)
 		{
-
+			WIFI_Send(buf);
 		}
 		OSTmrStart(&Stmr3, &err); //3S后允许弹出同一卡口
 	}
@@ -527,7 +524,7 @@ void orderPopup(ENUM_Internet_TypeDef internet, char *data)
 		}
 		else if (internet == InWifi)
 		{
-
+			WIFI_Send(buf);
 		}
 		OSTmrStart(&Stmr3, &err); //3S后允许弹出同一卡口
 	}
@@ -561,7 +558,7 @@ void commonHeart(ENUM_Internet_TypeDef internet)
 	}
 	else if (internet == InWifi)
 	{
-
+		WIFI_Send(Heart);
 	}
 }
 /**
@@ -569,13 +566,17 @@ void commonHeart(ENUM_Internet_TypeDef internet)
  * @internet 端口
  * @upCMD
  */
-void forceHeart(ENUM_Internet_TypeDef internet, ENUM_tcpUP_TypeDef upCmd)
+void forceHeart(ENUM_Internet_TypeDef internet, ENUM_tcpUP_TypeDef upCmd,
+		FunctionalState state)
 {
 	char *buf;
-	//查询所有卡口状态
-	for (int i = 0; i < 12; i++)
+	if (state)
 	{
-		PowerbankSTA.currentStatuCode[i] = checkPowerbankStatus(i);
+		//查询所有卡口状态
+		for (int i = 0; i < 12; i++)
+		{
+			PowerbankSTA.currentStatuCode[i] = checkPowerbankStatus(i);
+		}
 	}
 	buf = mymalloc(512);
 	memset(buf, '\0', 512);
@@ -593,7 +594,7 @@ void forceHeart(ENUM_Internet_TypeDef internet, ENUM_tcpUP_TypeDef upCmd)
 	}
 	else if (internet == InWifi)
 	{
-
+		WIFI_Send(buf);
 	}
 	myfree(buf);
 }
@@ -611,7 +612,7 @@ void responseReset(ENUM_Internet_TypeDef internet)
 	}
 	else if (internet == InWifi)
 	{
-
+		WIFI_Send(buf);
 	}
 	myfree(buf);
 	NVIC_SystemReset();
@@ -634,7 +635,7 @@ void reportPortStatuChanged(ENUM_Internet_TypeDef internet, u8 port)
 	}
 	else if (internet == InWifi)
 	{
-
+		WIFI_Send(buf);
 	}
 	myfree(buf);
 }
@@ -653,7 +654,7 @@ void request4Register(ENUM_Internet_TypeDef internet)
 	}
 	else if (internet == InWifi)
 	{
-
+		WIFI_Send(buf);
 	}
 	myfree(buf);
 }
@@ -673,7 +674,7 @@ void setWifiSsidAndPwd(ENUM_Internet_TypeDef internet, char *data)
 	}
 	else if (internet == InWifi)
 	{
-
+		WIFI_Send(buf);
 	}
 	myfree(buf);
 	TCP_Params.wifiParamModified = 1; //标记wifi账号密码修改
@@ -683,7 +684,6 @@ void setWifiSsidAndPwd(ENUM_Internet_TypeDef internet, char *data)
  */
 void getRegisterParams(ENUM_Internet_TypeDef internet, char *data)
 {
-	OS_ERR err;
 	char *tem = NULL;
 	tem = strtok(data, "_");
 	RegisterParams.heartTime = atoi(tem);
@@ -691,14 +691,16 @@ void getRegisterParams(ENUM_Internet_TypeDef internet, char *data)
 	RegisterParams.statuHeartTime = atoi(tem);
 	DEBUG("ht=%d,sht=%d\r\n", RegisterParams.heartTime,
 			RegisterParams.statuHeartTime);
-	//第一次上报所有卡口状态
-	forceHeart(internet, UP_AllPortsSTA);
-	if(internet == In4G)
+	//上报所有卡口状态
+	forceHeart(internet, UP_AllPortsSTA, ENABLE);
+	if (internet == In4G)
 	{
-		OSTmrStart(&Stmr1, &err);
+		F4G_Fram.allowHeart = 1;
+		F4G_Fram.firstStatuHeartNotSucc = 1;
 	}
-	else if(internet == InWifi)
+	else if (internet == InWifi)
 	{
-		OSTmrStart(&Stmr2, &err);
+		WIFI_Fram.allowHeart = 1;
+		WIFI_Fram.firstStatuHeartNotSucc = 1;
 	}
 }

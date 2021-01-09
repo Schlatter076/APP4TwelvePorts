@@ -127,7 +127,6 @@
 *                   See also 'cpu_core.c  CPU_IntDisMeasInit()  Note #3a'.
 *********************************************************************************************************
 */
-
 #if 1                                                           /* Configure CPU interrupts disabled time ...           */
 #define  CPU_CFG_INT_DIS_MEAS_EN                                /* ... measurements feature (see Note #1a).             */
 #endif

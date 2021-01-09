@@ -46,7 +46,7 @@ void TIM3_IRQHandler(void)
 	{
 		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);  //清除标志位
 		//未上线
-		if (!F4G_Fram.Online && !WIFI_Fram.Online)
+		if (F4G_Fram.Online == 0 && WIFI_Fram.Online == 0)
 		{
 			BACK_LIGHT_STA ^= 1;
 		}

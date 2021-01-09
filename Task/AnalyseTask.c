@@ -16,7 +16,11 @@ void analyse_task(void *p_arg)
 	char *DecryptionBuf = NULL;
 	char *DecryptionTemBuf = NULL;
 	OS_FLAGS flag;
-	struct STRUCT_USART_Fram *fram;
+	struct STRUCT_USART_Fram *fram = NULL;
+#if PRINT_STK_USED
+	CPU_STK_SIZE n_free;
+	CPU_STK_SIZE n_used;
+#endif
 	while (1)
 	{
 		//等待数据接收
@@ -66,12 +70,13 @@ void analyse_task(void *p_arg)
 				if (needDecrypt)
 				{
 					needDecrypt = false;
-					base64_decode(res, (unsigned char *)DecryptionTemBuf);
+					base64_decode(res, (unsigned char *) DecryptionTemBuf);
 				}
 				else
 				{
 					strcpy(DecryptionTemBuf, res);
 				}
+				DEBUG("%c>>%s\r\n", net, DecryptionTemBuf);
 				res = strchr(DecryptionTemBuf, ','); //跳过设备编号
 				res += 1;  //跳过字符','
 				DecryptionBuf[0] = net;
@@ -103,6 +108,10 @@ void analyse_task(void *p_arg)
 						(OS_ERR*) &err); //错误码
 			}
 		}
+#if PRINT_STK_USED
+		OSTaskStkChk((OS_TCB *) 0, &n_free, &n_used, &err);
+		DEBUG("AnalyseTask::free=%u,used=%u\r\n", n_free, n_used);
+#endif
 		OSTimeDlyHMSM(0, 0, 0, 10, OS_OPT_TIME_PERIODIC, &err);
 	}
 }

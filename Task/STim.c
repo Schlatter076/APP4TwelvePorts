@@ -6,24 +6,12 @@
  */
 #include "task.h"
 
-/**
- * 软件定时器1
- * 用来4G模块第一次上报卡口状态失败
- * 初始延时20S  周期延时20S
- */
-void Stmr1_callback(void *p_tmr, void *p_arg)
-{
-	forceHeart(In4G, UP_AllPortsSTA);
-}
-/**
- * 软件定时器2
- * 用来Wifi模块第一次上报卡口状态失败
- * 初始延时20S  周期延时20S
- */
-void Stmr2_callback(void *p_tmr, void *p_arg)
-{
-	forceHeart(InWifi, UP_AllPortsSTA);
-}
+volatile u8 initCnt = 0;
+volatile u16 heartCnt = 0;
+volatile u8 statuHeartCnt = 0;
+volatile u16 firstStatuHeartCnt = 0;
+volatile u16 wifi_firstStatuHeartCnt = 0;
+
 /**
  * 软件定时器3
  * 用来3S以后允许同一卡口弹出充电宝
@@ -40,6 +28,58 @@ void Stmr3_callback(void *p_tmr, void *p_arg)
  */
 void Stmr4_callback(void *p_tmr, void *p_arg)
 {
+	OS_ERR err;
+	//未上线
+	if (F4G_Fram.Online == 0 && WIFI_Fram.Online == 0)
+	{
+		if (initCnt++ == 50)
+		{
+			initCnt = 0;
+			BACK_LIGHT_STA ^= 1;
+		}
+	}
+	//第一次上报口状态失败
+	if (F4G_Fram.firstStatuHeartNotSucc)
+	{
+		if (firstStatuHeartCnt++ == 200) //20S
+		{
+			firstStatuHeartCnt = 0;
+			OSFlagPost((OS_FLAG_GRP*) &EventFlags, //对应的事件标志组
+					(OS_FLAGS) FLAG_F4G_FIR_REP, //事件位
+					(OS_OPT) OS_OPT_POST_FLAG_SET, //选择置位
+					(OS_ERR*) &err); //错误码
+		}
+	}
+	if (WIFI_Fram.firstStatuHeartNotSucc)
+	{
+		if (wifi_firstStatuHeartCnt++ == 200) //20S
+		{
+			wifi_firstStatuHeartCnt = 0;
+			OSFlagPost((OS_FLAG_GRP*) &EventFlags, //对应的事件标志组
+					(OS_FLAGS) FLAG_WIFI_FIR_REP, //事件位
+					(OS_OPT) OS_OPT_POST_FLAG_SET, //选择置位
+					(OS_ERR*) &err); //错误码
+		}
+	}
+	if (F4G_Fram.allowHeart || WIFI_Fram.allowHeart)
+	{
+		if (heartCnt++ == RegisterParams.heartTime * 10)
+		{
+			heartCnt = 0;
+			OSFlagPost((OS_FLAG_GRP*) &EventFlags, //对应的事件标志组
+					(OS_FLAGS) FLAG_COMMON_HEART, //事件位
+					(OS_OPT) OS_OPT_POST_FLAG_SET, //选择置位
+					(OS_ERR*) &err); //错误码
+			if (statuHeartCnt++ == RegisterParams.statuHeartTime)
+			{
+				statuHeartCnt = 0;
+				OSFlagPost((OS_FLAG_GRP*) &EventFlags, //对应的事件标志组
+						(OS_FLAGS) FLAG_STATU_HEART, //事件位
+						(OS_OPT) OS_OPT_POST_FLAG_SET, //选择置位
+						(OS_ERR*) &err); //错误码
+			}
+		}
+	}
 	//快闪
 	if (HC595_STATUS.fastBLINK[0])
 	{

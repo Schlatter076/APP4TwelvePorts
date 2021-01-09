@@ -33,22 +33,6 @@ void start_task(void *p_arg)
 			(CPU_CHAR*) "Event Flags",	//名字
 			(OS_FLAGS) 0,				//事件标志组初始值
 			(OS_ERR*) &err);			//错误码
-	OSTmrCreate((OS_TMR *) &Stmr1,		//定时器
-			(CPU_CHAR *) "Stmr1",		//定时器名字
-			(OS_TICK) 2000,			//2000*10=20S
-			(OS_TICK) 2000,          //2000*10=20S
-			(OS_OPT) OS_OPT_TMR_PERIODIC, //周期模式
-			(OS_TMR_CALLBACK_PTR) Stmr1_callback, //定时器回调函数
-			(void *) 0,			//参数为0
-			(OS_ERR *) &err);		//返回的错误码
-	OSTmrCreate((OS_TMR *) &Stmr2,		//定时器
-			(CPU_CHAR *) "Stmr2",		//定时器名字
-			(OS_TICK) 2000,			//2000*10=20S
-			(OS_TICK) 2000,          //2000*10=20S
-			(OS_OPT) OS_OPT_TMR_PERIODIC, //周期模式
-			(OS_TMR_CALLBACK_PTR) Stmr2_callback, //定时器回调函数
-			(void *) 0,			//参数为0
-			(OS_ERR *) &err);		//返回的错误码
 	OSTmrCreate((OS_TMR *) &Stmr3,		 //定时器
 			(CPU_CHAR *) "Stmr3",	//定时器名字
 			(OS_TICK) 300,			//300*10=3S
@@ -79,8 +63,6 @@ void start_task(void *p_arg)
 			(void *) 0,					//用户补充的存储区
 			(OS_OPT) OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR, //任务选项
 			(OS_ERR *) &err);				//存放该函数错误时的返回值
-	//暂时挂起充电宝状态检测任务(因为此时还没有上线)
-	OSTaskSuspend((OS_TCB *) &BatTaskTCB, &err);
 	OSTaskCreate((OS_TCB *) &AnalyseTaskTCB,		//任务控制块
 			(CPU_CHAR *) "analyse task", 		//任务名字
 			(OS_TASK_PTR) analyse_task, 			//任务函数
@@ -102,6 +84,19 @@ void start_task(void *p_arg)
 			(CPU_STK *) &PROCESS_SERVER_TASK_STK[0],	//任务堆栈基地址
 			(CPU_STK_SIZE) PROCESS_SERVER_STK_SIZE / 10,	//任务堆栈深度限位
 			(CPU_STK_SIZE) PROCESS_SERVER_STK_SIZE,		//任务堆栈大小
+			(OS_MSG_QTY) 4,					//任务内部消息队列能够接收的最大消息数目,为0时禁止接收消息
+			(OS_TICK) 0,					//当使能时间片轮转时的时间片长度，为0时为默认长度，
+			(void *) 0,					//用户补充的存储区
+			(OS_OPT) OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR, //任务选项
+			(OS_ERR *) &err);			//存放该函数错误时的返回值
+	OSTaskCreate((OS_TCB *) &NetworkTaskTCB,		//任务控制块
+			(CPU_CHAR *) "network tasksk", 		//任务名字
+			(OS_TASK_PTR) network_task, 			//任务函数
+			(void *) 0,					//传递给任务函数的参数
+			(OS_PRIO) NETWORK_TASK_PRIO,     //任务优先级
+			(CPU_STK *) &NETWORK_TASK_STK[0],	//任务堆栈基地址
+			(CPU_STK_SIZE) NETWORK_STK_SIZE / 10,	//任务堆栈深度限位
+			(CPU_STK_SIZE) NETWORK_STK_SIZE,		//任务堆栈大小
 			(OS_MSG_QTY) 4,					//任务内部消息队列能够接收的最大消息数目,为0时禁止接收消息
 			(OS_TICK) 0,					//当使能时间片轮转时的时间片长度，为0时为默认长度，
 			(void *) 0,					//用户补充的存储区

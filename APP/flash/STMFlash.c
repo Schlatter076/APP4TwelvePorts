@@ -119,9 +119,10 @@ void STMFLASH_Read(u32 ReadAddr, u32 *pBuffer, u32 NumToRead)
 void STMFlash_Init(void)
 {
 	//===================本地调试时使用===============================================
-	strcpy((char *)MyFlashParams.DeviceID, "PM000001");
-	strcpy((char *)MyFlashParams.Version, "tweleve1229");
-	strcpy((char *)MyFlashParams.ServerParams, "aaaaaaaaaaaaaaaa-server.dayitc.com:13401-1-5-2");
+	strcpy((char *) MyFlashParams.DeviceID, "PM000001");
+	strcpy((char *) MyFlashParams.Version, "tweleve1229");
+	strcpy((char *) MyFlashParams.ServerParams,
+			"aaaaaaaaaaaaaaaa-server.dayitc.com:13401-1-5-2");
 	memset(MyFlashParams.IgnoreLock, 0, 12);
 	MyFlashParams.WifiFlag = 0;
 	//===================本地调试时使用===============================================
@@ -147,6 +148,11 @@ void STMFlash_Init(void)
  */
 void MyFlash_Write(struct AboutFlash_typeDef *def)
 {
+#if SYSTEM_SUPPORT_OS
+	CPU_SR_ALLOC();
+	OS_CRITICAL_ENTER()
+	;	//进入临界区
+#endif
 	STMFLASH_Write(DEVICE_ID_ADDR, (u32 *) &def->DeviceID[0], 2);
 	STMFLASH_Write(VERSION_ADDR, (u32 *) &def->Version[0], 5);
 	STMFLASH_Write(APP_SERVER_ADDR, (u32 *) &def->ServerParams[0], 25);
@@ -155,4 +161,8 @@ void MyFlash_Write(struct AboutFlash_typeDef *def)
 	STMFLASH_Write(WIFI_PWD_ADDR, (u32 *) &def->WifiPWD[0], 25);
 	STMFLASH_Write(WIFI_FLAG_ADDR, (u32 *) &def->WifiFlag, 1);
 	STMFLASH_Write(IAP_FLAG_ADDR, (u32 *) &def->IAPFlag, 1);
+#if SYSTEM_SUPPORT_OS
+	OS_CRITICAL_EXIT()
+	;	//退出临界区
+#endif
 }

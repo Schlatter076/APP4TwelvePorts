@@ -22,7 +22,7 @@ int main(void)
 	Motor_Init();
 	Powerbank_Init(115200);
 	Backlight_Init();
-	TIM3_Init(5000-1,8400-1); //定时器时钟84M 分频8400 周期=5000/10000S
+	//TIM3_Init(5000-1,8400-1); //定时器时钟84M 分频8400 周期=5000/10000S
 	F4G_Init(115200);
 	WIFI_Init(115200);
 

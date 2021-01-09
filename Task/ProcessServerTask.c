@@ -14,6 +14,10 @@ void process_server_task(void *p_arg)
 	u8 cmd = 0;
 	OS_MSG_SIZE size;
 	OS_ERR err;
+#if PRINT_STK_USED
+	CPU_STK_SIZE n_free;
+	CPU_STK_SIZE n_used;
+#endif
 	while (1)
 	{
 		//请求消息
@@ -30,6 +34,10 @@ void process_server_task(void *p_arg)
 		tem = strtok(NULL, ",");
 		ProcessServerCmd(net, cmd, tem);
 		myfree(mes);  //释放资源
+#if PRINT_STK_USED
+		OSTaskStkChk((OS_TCB *) 0, &n_free, &n_used, &err);
+		DEBUG("ProcessTask::free=%u,used=%u\r\n", n_free, n_used);
+#endif
 		OSTimeDlyHMSM(0, 0, 0, 10, OS_OPT_TIME_PERIODIC, &err);
 	}
 }

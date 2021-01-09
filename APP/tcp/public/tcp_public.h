@@ -33,13 +33,13 @@ struct STRUCT_USART_Fram  //定义一个全局串口数据帧的处理结构体
 //	unsigned char ServerData[BASE64_BUF_LEN];
 //	unsigned char *Server_Command[2];
 	__IO u8 Online;
-	__IO u8 linkedClosed;
+//	__IO u8 linkedClosed;
 //	__IO u8 allowProcessServerData;
 //	__IO u8 init;
 //	__IO u8 registerSuccess;
-//	__IO u8 firstStatuHeartNotSucc;
+	__IO u8 firstStatuHeartNotSucc;
 //	__IO u8 serverStatuCnt;
-//	__IO u8 allowHeart;
+	__IO u8 allowHeart;
 //	__IO u8 forceHeart_32;
 //	__IO u8 forceHeart_90;
 //	__IO u8 NowInAT;
@@ -152,7 +152,6 @@ typedef enum
 	UP_OrderPopupPowerbank = 41,
 } ENUM_tcpUP_TypeDef;
 
-
 void AnalyzeServerParams(void);
 void _USART_Printf(ENUM_Internet_TypeDef net, const char *fmt, ...);
 bool Send_AT_Cmd(ENUM_Internet_TypeDef internet, char *cmd, char *ack1,
@@ -173,7 +172,8 @@ void systemPopup(ENUM_Internet_TypeDef internet, char *data);
 void orderPopup(ENUM_Internet_TypeDef internet, char *data);
 void modifyLockSTA(char *data);
 void commonHeart(ENUM_Internet_TypeDef internet);
-void forceHeart(ENUM_Internet_TypeDef internet, ENUM_tcpUP_TypeDef upCmd);
+void forceHeart(ENUM_Internet_TypeDef internet, ENUM_tcpUP_TypeDef upCmd,
+		FunctionalState state);
 void responseReset(ENUM_Internet_TypeDef internet);
 void reportPortStatuChanged(ENUM_Internet_TypeDef internet, u8 port);
 void request4Register(ENUM_Internet_TypeDef internet);

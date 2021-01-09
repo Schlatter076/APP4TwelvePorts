@@ -81,6 +81,7 @@ void F4G_Init(u32 bound)
 bool ConnectToServerBy4G(char* addr, char* port)
 {
 	bool res = false;
+	F4G_Fram.allowHeart = 0;
 	char *p = mymalloc(100);
 	sprintf(p, "AT+CIPSTART=\"TCP\",\"%s\",%s", addr, port);
 	Send_AT_Cmd(In4G, "AT+CIPSHUT", "SHUT OK", NULL, 100, 2);
@@ -226,6 +227,12 @@ void USART3_IRQHandler(void)
 	{
 		USART3->SR; //先读SR，再读DR
 		USART3->DR;
+
+		if(strstr((const char *)F4G_Fram.RxBuf, "CLOSED"))
+		{
+			F4G_Fram.Online = 0;  //模块连接已断
+		}
+
 		//关闭DMA
 		DMA_Cmd(DMA1_Stream1, DISABLE);
 		//清除标志位
