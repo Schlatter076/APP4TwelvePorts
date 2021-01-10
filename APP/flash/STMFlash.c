@@ -107,10 +107,10 @@ void STMFlash_Init(void)
 //	STMFLASH_Read(VERSION_ADDR, (u32 *) &MyFlashParams.Version[0], 5);
 //	STMFLASH_Read(IGNORE_LOCK_ADDR, (u32 *) &MyFlashParams.IgnoreLock[0], 3);
 //	STMFLASH_Read(APP_SERVER_ADDR, (u32 *) &MyFlashParams.ServerParams[0], 25);
-//	STMFLASH_Read(WIFI_SSID_ADDR, (u32 *) &MyFlashParams.WifiSSID[0], 25);
-//	STMFLASH_Read(WIFI_PWD_ADDR, (u32 *) &MyFlashParams.WifiPWD[0], 2);
+	STMFLASH_Read(WIFI_SSID_ADDR, (u32 *) &MyFlashParams.WifiSSID[0], 25);
+	STMFLASH_Read(WIFI_PWD_ADDR, (u32 *) &MyFlashParams.WifiPWD[0], 2);
 //	STMFLASH_Read(WIFI_FLAG_ADDR, (u32 *) &MyFlashParams.WifiFlag, 1);
-	STMFLASH_Read(IAP_FLAG_ADDR, (u32 *) &MyFlashParams.IAPFlag, 1);
+	MyFlashParams.IAPFlag = IAP_INIT_FLAG_DATA;
 	//添加结束符
 	MyFlashParams.DeviceID[8] = '\0';
 	MyFlashParams.Version[20] = '\0';
@@ -139,7 +139,6 @@ void MyFlash_Write(struct AboutFlash_typeDef *def)
 	STMFLASH_Write(WIFI_SSID_ADDR, (u32 *) &def->WifiSSID[0], 25);
 	STMFLASH_Write(WIFI_PWD_ADDR, (u32 *) &def->WifiPWD[0], 25);
 	STMFLASH_Write(WIFI_FLAG_ADDR, (u32 *) &def->WifiFlag, 1);
-	STMFLASH_Write(IAP_FLAG_ADDR, (u32 *) &def->IAPFlag, 1);
 	FLASH_DataCacheCmd(ENABLE);	//FLASH擦除结束,开启数据缓存
 	FLASH_Lock();	//上锁
 #if SYSTEM_SUPPORT_OS
