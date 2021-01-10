@@ -14,15 +14,15 @@
 //FLASH起始地址
 #define STM32_FLASH_BASE  ((u32)0x08000000) 	//STM32 FLASH的起始地址
 //参数
-#define DEVICE_ID_ADDR    ((u32)0x08010000)   //设备编号-长度8字节
-#define VERSION_ADDR      ((u32)0x08010008)   //程序版本-长度20字节
-#define APP_SERVER_ADDR   ((u32)0x0801001C)   //服务器拿回的数据-长度100字节
-#define IGNORE_LOCK_ADDR  ((u32)0x08010080)   //锁忽略状态-长度12字节
-#define WIFI_FLAG_ADDR    ((u32)0x0801008C)   //是否设置wifi标志位-4字节
-#define WIFI_SSID_ADDR    ((u32)0x08010090)   //wifi名-长度100字节
-#define WIFI_PWD_ADDR     ((u32)0x080100F4)   //wifi密码-长度100字节
+#define DEVICE_ID_ADDR    ((u32)0x080E0000)   //设备编号-长度8字节
+#define VERSION_ADDR      ((u32)0x080E0008)   //程序版本-长度20字节
+#define APP_SERVER_ADDR   ((u32)0x080E001C)   //服务器拿回的数据-长度100字节
+#define IGNORE_LOCK_ADDR  ((u32)0x080E0080)   //锁忽略状态-长度12字节
+#define WIFI_FLAG_ADDR    ((u32)0x080E008C)   //是否设置wifi标志位-4字节
+#define WIFI_SSID_ADDR    ((u32)0x080E0090)   //wifi名-长度100字节
+#define WIFI_PWD_ADDR     ((u32)0x080E00F4)   //wifi密码-长度100字节
 //IAP相关
-#define IAP_FLAG_ADDR     			((u32)0x08010158)   //IAP标志位-长度4字节
+#define IAP_FLAG_ADDR     			((u32)0x080E0158)   //IAP标志位-长度4字节
 #define IAP_INIT_FLAG_DATA          ((u32)0x0000FFFF)   //默认标志的数据(空片子的情况)
 #define IAP_UPDATE_FLAG_DATA        ((u32)0x0000EEEE)   //下载标志的数据
 #define IAP_UPLOAD_FLAG_DATA        ((u32)0x0000DDDD)   //上传标志的数据
@@ -60,9 +60,9 @@ struct AboutFlash_typeDef
 };
 extern struct AboutFlash_typeDef MyFlashParams;
 
-u32 STMFLASH_ReadWord(u32 faddr);		  	//读出字
-void STMFLASH_Write(u32 WriteAddr, u32 *pBuffer, u32 NumToWrite);//从指定地址开始写入指定长度的数据
-void STMFLASH_Read(u32 ReadAddr, u32 *pBuffer, u32 NumToRead); //从指定地址开始读出指定长度的数据
+//u32 STMFLASH_ReadWord(u32 faddr);		  	//读出字
+//void STMFLASH_Write(u32 WriteAddr, u32 *pBuffer, u32 NumToWrite);//从指定地址开始写入指定长度的数据
+//void STMFLASH_Read(u32 ReadAddr, u32 *pBuffer, u32 NumToRead); //从指定地址开始读出指定长度的数据
 
 void STMFlash_Init(void);
 void MyFlash_Write(struct AboutFlash_typeDef *def);
