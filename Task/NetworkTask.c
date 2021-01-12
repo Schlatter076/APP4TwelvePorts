@@ -90,7 +90,7 @@ void network_task(void *p_arg)
 				_WIFI_RST = 0;
 				delay_ms(1000);
 				delay_ms(1000);
-				_F4G_RST = 1;
+				_WIFI_RST = 1;
 				delay_ms(100);
 				//4.再次检查模块是否正常工作
 				WIFI_Fram.AT_test_OK = AT_Test(InWifi);
@@ -116,11 +116,11 @@ void network_task(void *p_arg)
 			if (!WIFI_Fram.Online || TCP_Params.wifiParamModified)
 			{
 				//11.再次执行ip连接
-				F4G_Fram.Online = ConnectToServerByWIFI(RegisterParams.ip,
+				WIFI_Fram.Online = ConnectToServerByWIFI(RegisterParams.ip,
 						RegisterParams.port);
 
 				//12.如果成功连接到ip
-				if (F4G_Fram.Online)
+				if (WIFI_Fram.Online)
 				{
 					//13.清除wifi参数更改标志
 					TCP_Params.wifiParamModified = 0;

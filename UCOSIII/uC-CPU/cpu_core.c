@@ -15,8 +15,6 @@
 *               Please help us continue to provide the Embedded community with the finest
 *               software available.  Your honesty is greatly appreciated.
 *
-*               You can find our product's user manual, API reference, release notes and
-*               more information at https://doc.micrium.com.
 *               You can contact us at www.micrium.com.
 *********************************************************************************************************
 */
@@ -27,7 +25,7 @@
 *                                           CORE CPU MODULE
 *
 * Filename      : cpu_core.c
-* Version       : V1.30.01
+* Version       : V1.29.02
 * Programmer(s) : SR
 *                 ITJ
 *********************************************************************************************************
@@ -42,11 +40,7 @@
 
 #define    MICRIUM_SOURCE
 #define    CPU_CORE_MODULE
-#include  "cpu_core.h"
-
-#if (CPU_CFG_CACHE_MGMT_EN == DEF_ENABLED)
-#include  "cpu_cache.h"
-#endif
+#include  <cpu_core.h>
 
 
 /*
@@ -210,10 +204,6 @@ void  CPU_Init (void)
                                                                 /* ------------------ INIT CPU NAME ------------------- */
 #if (CPU_CFG_NAME_EN == DEF_ENABLED)
      CPU_NameInit();
-#endif
-
-#if (CPU_CFG_CACHE_MGMT_EN == DEF_ENABLED)
-     CPU_Cache_Init();
 #endif
 }
 
@@ -1215,8 +1205,8 @@ CPU_DATA  CPU_CntLeadZeros08 (CPU_INT08U  val)
 #else                                                                           /* ----------- C-OPTIMIZED ------------ */
                                                                                 /* Chk bits [07:00] :                   */
                                                                                 /* .. Nbr lead zeros =               .. */
-    ix              = (CPU_DATA)(val);                                          /* .. lookup tbl ix  = 'val' >>  0 bits */
-    nbr_lead_zeros  = (CPU_DATA)(CPU_CntLeadZerosTbl[ix]);                      /* .. plus nbr msb lead zeros =  0 bits.*/
+    ix              = (CPU_DATA)(val >>  0u);                                   /* .. lookup tbl ix  = 'val' >>  0 bits */
+    nbr_lead_zeros  = (CPU_DATA)(CPU_CntLeadZerosTbl[ix] +  0u);                /* .. plus nbr msb lead zeros =  0 bits.*/
 #endif
 
 
@@ -1282,13 +1272,13 @@ CPU_DATA  CPU_CntLeadZeros16 (CPU_INT16U  val)
 #else                                                                           /* ----------- C-OPTIMIZED ------------ */
     if (val > 0x00FFu) {                                                        /* Chk bits [15:08] :                   */
                                                                                 /* .. Nbr lead zeros =               .. */
-        ix             = (CPU_DATA)((CPU_DATA)val >> 8u);                       /* .. lookup tbl ix  = 'val' >>  8 bits */
-        nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix]);                   /* .. plus nbr msb lead zeros =  0 bits.*/
+        ix             = (CPU_DATA)(val >>  8u);                                /* .. lookup tbl ix  = 'val' >>  8 bits */
+        nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix] +  0u);             /* .. plus nbr msb lead zeros =  0 bits.*/
 
     } else {                                                                    /* Chk bits [07:00] :                   */
                                                                                 /* .. Nbr lead zeros =               .. */
-        ix             = (CPU_DATA)(val);                                       /* .. lookup tbl ix  = 'val' >>  0 bits */
-        nbr_lead_zeros = (CPU_DATA)((CPU_DATA)CPU_CntLeadZerosTbl[ix] +  8u);   /* .. plus nbr msb lead zeros =  8 bits.*/
+        ix             = (CPU_DATA)(val >>  0u);                                /* .. lookup tbl ix  = 'val' >>  0 bits */
+        nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix] +  8u);             /* .. plus nbr msb lead zeros =  8 bits.*/
     }
 #endif
 
@@ -1356,25 +1346,25 @@ CPU_DATA  CPU_CntLeadZeros32 (CPU_INT32U  val)
     if (val > 0x0000FFFFu) {
         if (val > 0x00FFFFFFu) {                                                /* Chk bits [31:24] :                   */
                                                                                 /* .. Nbr lead zeros =               .. */
-            ix             = (CPU_DATA)((CPU_DATA)val >> 24u);                  /* .. lookup tbl ix  = 'val' >> 24 bits */
-            nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix]);               /* .. plus nbr msb lead zeros =  0 bits.*/
+            ix             = (CPU_DATA)(val >> 24u);                            /* .. lookup tbl ix  = 'val' >> 24 bits */
+            nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix] +  0u);         /* .. plus nbr msb lead zeros =  0 bits.*/
 
         } else {                                                                /* Chk bits [23:16] :                   */
                                                                                 /* .. Nbr lead zeros =               .. */
-            ix             = (CPU_DATA)((CPU_DATA)val >> 16u);                  /* .. lookup tbl ix  = 'val' >> 16 bits */
-            nbr_lead_zeros = (CPU_DATA)((CPU_DATA)CPU_CntLeadZerosTbl[ix] +  8u);/* .. plus nbr msb lead zeros =  8 bits.*/
+            ix             = (CPU_DATA)(val >> 16u);                            /* .. lookup tbl ix  = 'val' >> 16 bits */
+            nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix] +  8u);         /* .. plus nbr msb lead zeros =  8 bits.*/
         }
 
     } else {
         if (val > 0x000000FFu) {                                                /* Chk bits [15:08] :                   */
                                                                                 /* .. Nbr lead zeros =               .. */
-            ix             = (CPU_DATA)((CPU_DATA)val >>  8u);                  /* .. lookup tbl ix  = 'val' >>  8 bits */
-            nbr_lead_zeros = (CPU_DATA)((CPU_DATA)CPU_CntLeadZerosTbl[ix] + 16u);/* .. plus nbr msb lead zeros = 16 bits.*/
+            ix             = (CPU_DATA)(val >>  8u);                            /* .. lookup tbl ix  = 'val' >>  8 bits */
+            nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix] + 16u);         /* .. plus nbr msb lead zeros = 16 bits.*/
 
         } else {                                                                /* Chk bits [07:00] :                   */
                                                                                 /* .. Nbr lead zeros =               .. */
-            ix             = (CPU_DATA)((CPU_DATA)val >>  0u);                  /* .. lookup tbl ix  = 'val' >>  0 bits */
-            nbr_lead_zeros = (CPU_DATA)((CPU_DATA)CPU_CntLeadZerosTbl[ix] + 24u);/* .. plus nbr msb lead zeros = 24 bits.*/
+            ix             = (CPU_DATA)(val >>  0u);                            /* .. lookup tbl ix  = 'val' >>  0 bits */
+            nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix] + 24u);         /* .. plus nbr msb lead zeros = 24 bits.*/
         }
     }
 #endif
@@ -1444,25 +1434,25 @@ CPU_DATA  CPU_CntLeadZeros64 (CPU_INT64U  val)
         if (val > 0x0000FFFFFFFFFFFFu) {
             if (val > 0x00FFFFFFFFFFFFFFu) {                                    /* Chk bits [63:56] :                   */
                                                                                 /* .. Nbr lead zeros =               .. */
-                ix             = (CPU_DATA)((CPU_INT64U)val >> 56u);            /* .. lookup tbl ix  = 'val' >> 56 bits */
-                nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix]);           /* .. plus nbr msb lead zeros =  0 bits.*/
+                ix             = (CPU_DATA)(val >> 56u);                        /* .. lookup tbl ix  = 'val' >> 56 bits */
+                nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix] +  0u);     /* .. plus nbr msb lead zeros =  0 bits.*/
 
             } else {                                                            /* Chk bits [55:48] :                   */
                                                                                 /* .. Nbr lead zeros =               .. */
-                ix             = (CPU_DATA)((CPU_INT64U)val >> 48u);            /* .. lookup tbl ix  = 'val' >> 48 bits */
-                nbr_lead_zeros = (CPU_DATA)((CPU_INT64U)CPU_CntLeadZerosTbl[ix] +  8u);/* .. plus nbr msb lead zeros =  8 bits.*/
+                ix             = (CPU_DATA)(val >> 48u);                        /* .. lookup tbl ix  = 'val' >> 48 bits */
+                nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix] +  8u);     /* .. plus nbr msb lead zeros =  8 bits.*/
             }
 
         } else {
             if (val > 0x000000FFFFFFFFFFu) {                                    /* Chk bits [47:40] :                   */
                                                                                 /* .. Nbr lead zeros =               .. */
-                ix             = (CPU_DATA)((CPU_INT64U)val >> 40u);            /* .. lookup tbl ix  = 'val' >> 40 bits */
-                nbr_lead_zeros = (CPU_DATA)((CPU_INT64U)CPU_CntLeadZerosTbl[ix] + 16u);/* .. plus nbr msb lead zeros = 16 bits.*/
+                ix             = (CPU_DATA)(val >> 40u);                        /* .. lookup tbl ix  = 'val' >> 40 bits */
+                nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix] + 16u);     /* .. plus nbr msb lead zeros = 16 bits.*/
 
             } else {                                                            /* Chk bits [39:32] :                   */
                                                                                 /* .. Nbr lead zeros =               .. */
-                ix             = (CPU_DATA)((CPU_INT64U)val >> 32u);            /* .. lookup tbl ix  = 'val' >> 32 bits */
-                nbr_lead_zeros = (CPU_DATA)((CPU_INT64U)CPU_CntLeadZerosTbl[ix] + 24u);/* .. plus nbr msb lead zeros = 24 bits.*/
+                ix             = (CPU_DATA)(val >> 32u);                        /* .. lookup tbl ix  = 'val' >> 32 bits */
+                nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix] + 24u);     /* .. plus nbr msb lead zeros = 24 bits.*/
             }
         }
 
@@ -1470,25 +1460,25 @@ CPU_DATA  CPU_CntLeadZeros64 (CPU_INT64U  val)
         if (val > 0x000000000000FFFFu) {
             if (val > 0x0000000000FFFFFFu) {                                    /* Chk bits [31:24] :                   */
                                                                                 /* .. Nbr lead zeros =               .. */
-                ix             = (CPU_DATA)((CPU_INT64U)val >> 24u);              /* .. lookup tbl ix  = 'val' >> 24 bits */
-                nbr_lead_zeros = (CPU_DATA)((CPU_INT64U)CPU_CntLeadZerosTbl[ix] + 32u);/* .. plus nbr msb lead zeros = 32 bits.*/
+                ix             = (CPU_DATA)(val >> 24u);                        /* .. lookup tbl ix  = 'val' >> 24 bits */
+                nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix] + 32u);     /* .. plus nbr msb lead zeros = 32 bits.*/
 
             } else {                                                            /* Chk bits [23:16] :                   */
                                                                                 /* .. Nbr lead zeros =               .. */
-                ix             = (CPU_DATA)((CPU_INT64U)val >> 16u);            /* .. lookup tbl ix  = 'val' >> 16 bits */
-                nbr_lead_zeros = (CPU_DATA)((CPU_INT64U)CPU_CntLeadZerosTbl[ix] + 40u);/* .. plus nbr msb lead zeros = 40 bits.*/
+                ix             = (CPU_DATA)(val >> 16u);                        /* .. lookup tbl ix  = 'val' >> 16 bits */
+                nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix] + 40u);     /* .. plus nbr msb lead zeros = 40 bits.*/
             }
 
         } else {
             if (val > 0x00000000000000FFu) {                                    /* Chk bits [15:08] :                   */
                                                                                 /* .. Nbr lead zeros =               .. */
-                ix             = (CPU_DATA)((CPU_INT64U)val >>  8u);            /* .. lookup tbl ix  = 'val' >>  8 bits */
-                nbr_lead_zeros = (CPU_DATA)((CPU_INT64U)CPU_CntLeadZerosTbl[ix] + 48u);/* .. plus nbr msb lead zeros = 48 bits.*/
+                ix             = (CPU_DATA)(val >>  8u);                        /* .. lookup tbl ix  = 'val' >>  8 bits */
+                nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix] + 48u);     /* .. plus nbr msb lead zeros = 48 bits.*/
 
             } else {                                                            /* Chk bits [07:00] :                   */
                                                                                 /* .. Nbr lead zeros =               .. */
-                ix             = (CPU_DATA)(val);                               /* .. lookup tbl ix  = 'val' >>  0 bits */
-                nbr_lead_zeros = (CPU_DATA)((CPU_INT64U)CPU_CntLeadZerosTbl[ix] + 56u);/* .. plus nbr msb lead zeros = 56 bits.*/
+                ix             = (CPU_DATA)(val >>  0u);                        /* .. lookup tbl ix  = 'val' >>  0 bits */
+                nbr_lead_zeros = (CPU_DATA)(CPU_CntLeadZerosTbl[ix] + 56u);     /* .. plus nbr msb lead zeros = 56 bits.*/
             }
         }
     }

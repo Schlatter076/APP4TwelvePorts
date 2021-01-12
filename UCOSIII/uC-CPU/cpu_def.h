@@ -15,8 +15,6 @@
 *               Please help us continue to provide the Embedded community with the finest 
 *               software available.  Your honesty is greatly appreciated.
 *
-*               You can find our product's user manual, API reference, release notes and
-*               more information at https://doc.micrium.com.
 *               You can contact us at www.micrium.com.
 *********************************************************************************************************
 */
@@ -27,7 +25,7 @@
 *                                      CPU CONFIGURATION DEFINES
 *
 * Filename      : cpu_def.h
-* Version       : V1.30.01
+* Version       : V1.29.02
 * Programmer(s) : ITJ
 *********************************************************************************************************
 */
@@ -73,7 +71,7 @@
 *********************************************************************************************************
 */
 
-#define  CPU_CORE_VERSION                              13001u   /* See Note #1.                                         */
+#define  CPU_CORE_VERSION                              12902u   /* See Note #1.                                         */
 
 
 /*
@@ -97,10 +95,10 @@
 */
 
                                                         /* ---------------------- CPU WORD SIZE ----------------------- */
-#define  CPU_WORD_SIZE_08                          1u   /*  8-bit word size (in octets).                                */
-#define  CPU_WORD_SIZE_16                          2u   /* 16-bit word size (in octets).                                */
-#define  CPU_WORD_SIZE_32                          4u   /* 32-bit word size (in octets).                                */
-#define  CPU_WORD_SIZE_64                          8u   /* 64-bit word size (in octets).                                */
+#define  CPU_WORD_SIZE_08                          1    /*  8-bit word size (in octets).                                */
+#define  CPU_WORD_SIZE_16                          2    /* 16-bit word size (in octets).                                */
+#define  CPU_WORD_SIZE_32                          4    /* 32-bit word size (in octets).                                */
+#define  CPU_WORD_SIZE_64                          8    /* 64-bit word size (in octets).                                */
 
 
                                                         /* ------------------ CPU WORD-ENDIAN ORDER ------------------- */

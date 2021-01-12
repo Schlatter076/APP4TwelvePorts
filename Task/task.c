@@ -11,9 +11,19 @@ u8 *START_TASK_STK;
 void start_task(void *p_arg)
 {
 	OS_ERR err;
+//	CPU_INT32U cpu_clk_freq;
+//	CPU_INT32U cnts;
+#if PRINT_STK_USED
+	CPU_STK_SIZE n_free;
+	CPU_STK_SIZE n_used;
+#endif
 	CPU_SR_ALLOC();
 	p_arg = p_arg;
 	CPU_Init();
+//	cpu_clk_freq = BSP_CPU_ClkFreq(); /* Determine SysTick reference freq.                    */
+//	cnts = cpu_clk_freq / (CPU_INT32U) OSCfg_TickRate_Hz; /* Determine nbr SysTick increments                     */
+//	OS_CPU_SysTickInit(cnts); /* Init uC/OS periodic time src (SysTick).              */
+
 #if OS_CFG_STAT_TASK_EN > 0u
 	OSStatTaskCPUUsageInit(&err);  	//统计任务
 #endif
@@ -104,6 +114,10 @@ void start_task(void *p_arg)
 			(OS_ERR *) &err);			//存放该函数错误时的返回值
 	OS_CRITICAL_EXIT()
 	;	//退出临界区
+#if PRINT_STK_USED
+		OSTaskStkChk((OS_TCB *) 0, &n_free, &n_used, &err);
+		DEBUG("StartTask::free=%u,used=%u\r\n", n_free, n_used);
+#endif
 	OSTaskDel((OS_TCB*) 0, &err);	//删除start_task任务自身
 	myfree(START_TASK_STK);
 }

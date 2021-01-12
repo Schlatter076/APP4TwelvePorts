@@ -21,36 +21,37 @@
 #include "backlight.h"
 
 //是否需要打印各任务堆栈使用情况
-#define  PRINT_STK_USED    1u
+#define  PRINT_STK_USED    0u
 
 //=========任务管理器===============================
 //开始任务-用来创建其他任务,只运行一次
 #define START_TASK_PRIO		3   			//任务优先级
-#define START_STK_SIZE 		128  			//任务堆栈大小
+#define START_STK_SIZE 		64  			//任务堆栈大小
 OS_TCB StartTaskTCB;             			//任务控制块
 extern u8 *START_TASK_STK;       			//任务堆栈
+//CPU_STK START_TASK_STK[START_STK_SIZE];
 void start_task(void *p_arg);
 //数据解析任务
 #define ANALYSE_TASK_PRIO  4  				//任务优先级
-#define ANALYSE_STK_SIZE   128  				//任务堆栈大小
+#define ANALYSE_STK_SIZE   192  				//任务堆栈大小
 OS_TCB AnalyseTaskTCB;						//任务控制块
 CPU_STK ANALYSE_TASK_STK[ANALYSE_STK_SIZE];   	//任务堆栈
 void analyse_task(void *p_arg);
 //服务器数据处理任务
 #define PROCESS_SERVER_TASK_PRIO  5  				//任务优先级
-#define PROCESS_SERVER_STK_SIZE   128  				//任务堆栈大小
+#define PROCESS_SERVER_STK_SIZE   192  				//任务堆栈大小
 OS_TCB Process_SeverTaskTCB;						//任务控制块
 CPU_STK PROCESS_SERVER_TASK_STK[PROCESS_SERVER_STK_SIZE];   	//任务堆栈
 void process_server_task(void *p_arg);
 //联网任务
 #define NETWORK_TASK_PRIO  6  				//任务优先级
-#define NETWORK_STK_SIZE   128  				//任务堆栈大小
+#define NETWORK_STK_SIZE   192  				//任务堆栈大小
 OS_TCB NetworkTaskTCB;						//任务控制块
 CPU_STK NETWORK_TASK_STK[NETWORK_STK_SIZE];   	//任务堆栈
 void network_task(void *p_arg);
 //充电宝卡口检测任务
 #define BAT_TASK_PRIO  7        			//任务优先级
-#define BAT_STK_SIZE   128					//任务堆栈大小
+#define BAT_STK_SIZE   192					//任务堆栈大小
 OS_TCB BatTaskTCB;							//任务控制块
 CPU_STK BAT_TASK_STK[BAT_STK_SIZE];   		//任务堆栈
 void bat_task(void *p_arg);

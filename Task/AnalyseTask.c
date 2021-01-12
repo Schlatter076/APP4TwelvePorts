@@ -60,7 +60,7 @@ void analyse_task(void *p_arg)
 				res = strchr(res, '[');
 				res += 1; //跳过字符'['
 			}
-			if (fram->AccessLen > 3)  //跳过空心跳
+			if (strlen(res) > 8)  //跳过空心跳
 			{
 				DecryptionTemBuf = mymalloc(BASE64_BUF_LEN);
 				DecryptionBuf = mymalloc(BASE64_BUF_LEN);

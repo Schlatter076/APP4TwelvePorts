@@ -98,7 +98,7 @@ u8 getBatSwitchSTA(u8 bat)
 	default:
 		break;
 	}
-	return res;
+	return res == 0 ? 1 : 0;
 }
 
 /**
@@ -150,6 +150,6 @@ u8 getMotorSwitchSTA(u8 mot)
 	default:
 		break;
 	}
-	return res;
+	return res == 0 ? 1 : 0;
 }
 

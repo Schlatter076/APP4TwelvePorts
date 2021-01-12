@@ -3,14 +3,14 @@
 *                                                      uC/OS-III
 *                                                 The Real-Time Kernel
 *
-*                                  (c) Copyright 2009-2014; Micrium, Inc.; Weston, FL
+*                                  (c) Copyright 2009-2013; Micrium, Inc.; Weston, FL
 *                           All rights reserved.  Protected by international copyright laws.
 *
 *                                               MESSAGE QUEUE MANAGEMENT
 *
 * File    : OS_Q.C
 * By      : JJL
-* Version : V3.04.04
+* Version : V3.04.01
 *
 * LICENSING TERMS:
 * ---------------
@@ -26,9 +26,7 @@
 *           Please help us continue to provide the embedded community with the finest software available.
 *           Your honesty is greatly appreciated.
 *
-*           You can find our product's user manual, API reference, release notes and
-*           more information at https://doc.micrium.com.
-*           You can contact us at www.micrium.com.
+*           You can contact us at www.micrium.com, or by phone at +1 (954) 217-2036.
 ************************************************************************************************************************
 */
 
@@ -136,7 +134,7 @@ void  OSQCreate (OS_Q        *p_q,
    *p_err = OS_ERR_NONE;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                               DELETE A MESSAGE QUEUE
@@ -279,7 +277,7 @@ OS_OBJ_QTY  OSQDel (OS_Q    *p_q,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                     FLUSH QUEUE
@@ -349,7 +347,7 @@ OS_MSG_QTY  OSQFlush (OS_Q    *p_q,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                            PEND ON A QUEUE FOR A MESSAGE
@@ -378,7 +376,6 @@ OS_MSG_QTY  OSQFlush (OS_Q    *p_q,
 *              p_err         is a pointer to a variable that will contain an error code returned by this function.
 *
 *                                OS_ERR_NONE               The call was successful and your task received a message.
-*                                OS_ERR_OBJ_DEL            If 'p_q' was deleted
 *                                OS_ERR_OBJ_PTR_NULL       if you pass a NULL pointer for 'p_q'
 *                                OS_ERR_OBJ_TYPE           if the message queue was not created
 *                                OS_ERR_PEND_ABORT         the pend was aborted
@@ -578,6 +575,7 @@ void  *OSQPend (OS_Q         *p_q,
 }
 
 
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                             ABORT WAITING ON A MESSAGE QUEUE
@@ -693,7 +691,7 @@ OS_OBJ_QTY  OSQPendAbort (OS_Q    *p_q,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                               POST MESSAGE TO A QUEUE
@@ -827,7 +825,7 @@ void  OSQPost (OS_Q         *p_q,
              p_err);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                        CLEAR THE CONTENTS OF A MESSAGE QUEUE
@@ -858,7 +856,7 @@ void  OS_QClr (OS_Q  *p_q)
     OS_PendListInit(&p_q->PendList);                        /* Initialize the waiting list                            */
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                      ADD/REMOVE MESSAGE QUEUE TO/FROM DEBUG LIST
@@ -920,7 +918,7 @@ void  OS_QDbgListRemove (OS_Q  *p_q)
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                              MESSAGE QUEUE INITIALIZATION
@@ -955,7 +953,7 @@ void  OS_QInit (OS_ERR  *p_err)
    *p_err         = OS_ERR_NONE;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                               POST MESSAGE TO A QUEUE

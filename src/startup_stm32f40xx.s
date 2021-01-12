@@ -37,7 +37,7 @@
   */
     
   .syntax unified
-  .cpu cortex-m3
+  .cpu cortex-m4
   .fpu softvfp
   .thumb
 
@@ -513,6 +513,4 @@ g_pfnVectors:
    .thumb_set HASH_RNG_IRQHandler,Default_Handler   
 
    .weak      FPU_IRQHandler                  
-   .thumb_set FPU_IRQHandler,Default_Handler  
-   
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+   .thumb_set FPU_IRQHandler,Default_Handler

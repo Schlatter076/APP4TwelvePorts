@@ -3,14 +3,14 @@
 *                                                      uC/OS-III
 *                                                 The Real-Time Kernel
 *
-*                                  (c) Copyright 2009-2014; Micrium, Inc.; Weston, FL
+*                                  (c) Copyright 2009-2013; Micrium, Inc.; Weston, FL
 *                           All rights reserved.  Protected by international copyright laws.
 *
 *                                                   TASK MANAGEMENT
 *
 * File    : OS_TASK.C
 * By      : JJL
-* Version : V3.04.04
+* Version : V3.04.01
 *
 * LICENSING TERMS:
 * ---------------
@@ -26,15 +26,12 @@
 *           Please help us continue to provide the embedded community with the finest software available.
 *           Your honesty is greatly appreciated.
 *
-*           You can find our product's user manual, API reference, release notes and
-*           more information at https://doc.micrium.com.
-*           You can contact us at www.micrium.com.
+*           You can contact us at www.micrium.com, or by phone at +1 (954) 217-2036.
 ************************************************************************************************************************
 */
 
 #define  MICRIUM_SOURCE
 #include "os.h"
-
 
 #ifdef VSC_INCLUDE_SOURCE_FILE_NAMES
 const  CPU_CHAR  *os_task__c = "$Id: $";
@@ -58,7 +55,6 @@ const  CPU_CHAR  *os_task__c = "$Id: $";
 *                                                         (i.e. >= (OS_CFG_PRIO_MAX-1))
 *                             OS_ERR_STATE_INVALID        if the task is in an invalid state
 *                             OS_ERR_TASK_CHANGE_PRIO_ISR if you tried to change the task's priority from an ISR
-*                             OS_ERR_STATE_INVALID        if you tried changing the priority of a deleted task
 ************************************************************************************************************************
 */
 
@@ -67,10 +63,9 @@ void  OSTaskChangePrio (OS_TCB   *p_tcb,
                         OS_PRIO   prio_new,
                         OS_ERR   *p_err)
 {
-#if OS_CFG_MUTEX_EN > 0u
-    OS_PRIO  prio_high;
-#endif
+    CPU_BOOLEAN   self;
     CPU_SR_ALLOC();
+
 
 
 #ifdef OS_SAFETY_CRITICAL
@@ -80,14 +75,8 @@ void  OSTaskChangePrio (OS_TCB   *p_tcb,
     }
 #endif
 
-#if OS_CFG_ARG_CHK_EN > 0u
-    if ((p_tcb != (OS_TCB *)0u) && (p_tcb->TaskState == OS_TASK_STATE_DEL)) {
-       *p_err = OS_ERR_STATE_INVALID;
-    }
-#endif
-
 #if OS_CFG_CALLED_FROM_ISR_CHK_EN > 0u
-    if (OSIntNestingCtr > (OS_NESTING_CTR)0) {              /* Not allowed to call from an ISR                        */
+    if (OSIntNestingCtr > (OS_NESTING_CTR)0) {              /* ---------- CANNOT CREATE A TASK FROM AN ISR ---------- */
        *p_err = OS_ERR_TASK_CHANGE_PRIO_ISR;
         return;
     }
@@ -105,28 +94,63 @@ void  OSTaskChangePrio (OS_TCB   *p_tcb,
         return;
     }
 
-    if (p_tcb == (OS_TCB *)0) {                             /* Are we changing the priority of 'self'?                */
+    if (p_tcb == (OS_TCB *)0) {                             /* See if want to change priority of 'self'               */
         CPU_CRITICAL_ENTER();
         p_tcb = OSTCBCurPtr;
         CPU_CRITICAL_EXIT();
+        self  = DEF_TRUE;
+    } else {
+        self  = DEF_FALSE;
     }
 
     OS_CRITICAL_ENTER();
+    switch (p_tcb->TaskState) {
+        case OS_TASK_STATE_RDY:
+             OS_RdyListRemove(p_tcb);                       /* Remove from current priority                           */
+             p_tcb->Prio = prio_new;                        /* Set new task priority                                  */
+             OS_PrioInsert(p_tcb->Prio);
+             if (self == DEF_TRUE) {
+                 OS_RdyListInsertHead(p_tcb);
+             } else {
+                 OS_RdyListInsertTail(p_tcb);
+             }
+             break;
 
-#if OS_CFG_MUTEX_EN > 0u
-    p_tcb->BasePrio = prio_new;                             /* Update base priority                                   */
+        case OS_TASK_STATE_DLY:                             /* Nothing to do except change the priority in the OS_TCB */
+        case OS_TASK_STATE_SUSPENDED:
+        case OS_TASK_STATE_DLY_SUSPENDED:
+             p_tcb->Prio = prio_new;                        /* Set new task priority                                  */
+             break;
 
-    if (p_tcb->MutexGrpHeadPtr != (OS_MUTEX *)0) {              /* Owning a mutex?                                      */
-        if (prio_new > p_tcb->Prio) {
-            prio_high = OS_MutexGrpPrioFindHighest(p_tcb);
-            if (prio_new > prio_high) {
-                prio_new = prio_high;
+        case OS_TASK_STATE_PEND:
+        case OS_TASK_STATE_PEND_TIMEOUT:
+        case OS_TASK_STATE_PEND_SUSPENDED:
+        case OS_TASK_STATE_PEND_TIMEOUT_SUSPENDED:
+             switch (p_tcb->PendOn) {                       /* What to do depends on what we are pending on           */
+                 case OS_TASK_PEND_ON_TASK_Q:               /* Nothing to do except change the priority in the OS_TCB */
+                 case OS_TASK_PEND_ON_TASK_SEM:
+                 case OS_TASK_PEND_ON_FLAG:
+                      p_tcb->Prio = prio_new;               /* Set new task priority                                  */
+                      break;
+
+                 case OS_TASK_PEND_ON_MUTEX:
+                 case OS_TASK_PEND_ON_MULTI:
+                 case OS_TASK_PEND_ON_Q:
+                 case OS_TASK_PEND_ON_SEM:
+                      OS_PendListChangePrio(p_tcb,
+                                            prio_new);
+                      break;
+
+                 default:
+                      break;
             }
-        }
-    }
-#endif
+             break;
 
-    OS_TaskChangePrio(p_tcb, prio_new);
+        default:
+             OS_CRITICAL_EXIT();
+            *p_err = OS_ERR_STATE_INVALID;
+             return;
+    }
 
     OS_CRITICAL_EXIT_NO_SCHED();
 
@@ -136,7 +160,7 @@ void  OSTaskChangePrio (OS_TCB   *p_tcb,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                    CREATE A TASK
@@ -218,10 +242,10 @@ void  OSTaskChangePrio (OS_TCB   *p_tcb,
 *                                 OS_ERR_TASK_INVALID            if you specified a NULL pointer for 'p_task'
 *                                 OS_ERR_TCB_INVALID             if you specified a NULL pointer for 'p_tcb'
 *
-* Returns    : none
+* Returns    : A pointer to the TCB of the task created.  This pointer must be used as an ID (i.e handle) to the task.
 ************************************************************************************************************************
 */
-
+/*$PAGE*/
 void  OSTaskCreate (OS_TCB        *p_tcb,
                     CPU_CHAR      *p_name,
                     OS_TASK_PTR    p_task,
@@ -388,10 +412,6 @@ void  OSTaskCreate (OS_TCB        *p_tcb,
 
     p_tcb->Prio          = prio;                            /* Save the task's priority                               */
 
-#if OS_CFG_MUTEX_EN > 0u
-    p_tcb->BasePrio      = prio;                            /* Set the base priority                                  */
-#endif
-
     p_tcb->StkPtr        = p_sp;                            /* Save the new top-of-stack pointer                      */
 #if ((OS_CFG_DBG_EN > 0u) || (OS_CFG_STAT_TASK_STK_CHK_EN > 0u))
     p_tcb->StkLimitPtr   = p_stk_limit;                     /* Save the stack limit pointer                           */
@@ -433,9 +453,7 @@ void  OSTaskCreate (OS_TCB        *p_tcb,
 #if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
     TRACE_OS_TASK_CREATE(p_tcb);                            /* Record the event.                                      */
     TRACE_OS_TASK_SEM_CREATE(p_tcb, p_name);                /* Record the event.                                      */
-#if OS_CFG_TASK_Q_EN > 0u
     TRACE_OS_TASK_MSG_Q_CREATE(&p_tcb->MsgQ, p_name);       /* Record the event.                                      */
-#endif
 #endif
 
 #if defined(OS_CFG_TLS_TBL_SIZE) && (OS_CFG_TLS_TBL_SIZE > 0u)
@@ -465,7 +483,7 @@ void  OSTaskCreate (OS_TCB        *p_tcb,
     OSSched();
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                     DELETE A TASK
@@ -484,9 +502,7 @@ void  OSTaskCreate (OS_TCB        *p_tcb,
 *                             OS_ERR_TASK_DEL_INVALID      if you attempted to delete uC/OS-III's ISR handler task
 *                             OS_ERR_TASK_DEL_ISR          if you tried to delete a task from an ISR
 *
-* Returns    : none
-*
-* Note(s)    : 1) 'p_err' gets set to OS_ERR_NONE before OSSched() to allow the returned err or code to be monitored even
+* Note(s)    : 1) 'p_err' gets set to OS_ERR_NONE before OSSched() to allow the returned error code to be monitored even
 *                 for a task that is deleting itself. In this case, 'p_err' MUST point to a global variable that can be
 *                 accessed by another task.
 ************************************************************************************************************************
@@ -496,10 +512,6 @@ void  OSTaskCreate (OS_TCB        *p_tcb,
 void  OSTaskDel (OS_TCB  *p_tcb,
                  OS_ERR  *p_err)
 {
-#if OS_CFG_MUTEX_EN > 0u
-    OS_TCB  *p_tcb_owner;
-    OS_PRIO  prio_new;
-#endif
     CPU_SR_ALLOC();
 
 
@@ -562,40 +574,16 @@ void  OSTaskDel (OS_TCB  *p_tcb,
 
                  case OS_TASK_PEND_ON_FLAG:                 /* Remove from wait list                                  */
                  case OS_TASK_PEND_ON_MULTI:
+                 case OS_TASK_PEND_ON_MUTEX:
                  case OS_TASK_PEND_ON_Q:
                  case OS_TASK_PEND_ON_SEM:
                       OS_PendListRemove(p_tcb);
                       break;
 
-#if OS_CFG_MUTEX_EN > 0u
-                 case OS_TASK_PEND_ON_MUTEX:
-                      p_tcb_owner = ((OS_MUTEX *)p_tcb->PendDataTblPtr->PendObjPtr)->OwnerTCBPtr;
-                      prio_new = p_tcb_owner->Prio;
-                      OS_PendListRemove(p_tcb);
-                      if ((p_tcb_owner->Prio != p_tcb_owner->BasePrio) &&
-                          (p_tcb_owner->Prio == p_tcb->Prio)) { /* Has the owner inherited a priority?                */
-                          prio_new = OS_MutexGrpPrioFindHighest(p_tcb_owner);
-                          prio_new = prio_new > p_tcb_owner->BasePrio ? p_tcb_owner->BasePrio : prio_new;
-                      }
-                      p_tcb->PendOn = OS_TASK_PEND_ON_NOTHING;
-
-                      if (prio_new != p_tcb_owner->Prio) {
-                          OS_TaskChangePrio(p_tcb_owner, prio_new);
-#if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
-                          TRACE_OS_MUTEX_TASK_PRIO_DISINHERIT(p_tcb_owner, p_tcb_owner->Prio);
-#endif
-                      }
-                      break;
-#endif
-
                  default:
                       break;
              }
-             if ((p_tcb->TaskState == OS_TASK_STATE_PEND_TIMEOUT) ||
-                 (p_tcb->TaskState == OS_TASK_STATE_PEND_TIMEOUT_SUSPENDED)) {
-                 OS_TickListRemove(p_tcb);
-             }
-
+             OS_TickListRemove(p_tcb);
              break;
 
         default:
@@ -603,12 +591,6 @@ void  OSTaskDel (OS_TCB  *p_tcb,
            *p_err = OS_ERR_STATE_INVALID;
             return;
     }
-
-#if OS_CFG_MUTEX_EN > 0u
-    if(p_tcb->MutexGrpHeadPtr != (OS_MUTEX *)0) {
-        OS_MutexGrpPostAll(p_tcb);
-    }
-#endif
 
 #if OS_CFG_TASK_Q_EN > 0u
     (void)OS_MsgQFreeAll(&p_tcb->MsgQ);                     /* Free task's message queue messages                     */
@@ -638,7 +620,7 @@ void  OSTaskDel (OS_TCB  *p_tcb,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                    FLUSH TASK's QUEUE
@@ -699,7 +681,7 @@ OS_MSG_QTY  OSTaskQFlush (OS_TCB  *p_tcb,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                  WAIT FOR A MESSAGE
@@ -888,7 +870,7 @@ void  *OSTaskQPend (OS_TICK       timeout,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                              ABORT WAITING FOR A MESSAGE
@@ -982,7 +964,7 @@ CPU_BOOLEAN  OSTaskQPendAbort (OS_TCB  *p_tcb,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                               POST MESSAGE TO A TASK
@@ -1085,7 +1067,7 @@ void  OSTaskQPost (OS_TCB       *p_tcb,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                       GET THE CURRENT VALUE OF A TASK REGISTER
@@ -1144,7 +1126,7 @@ OS_REG  OSTaskRegGet (OS_TCB     *p_tcb,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                    ALLOCATE THE NEXT AVAILABLE TASK REGISTER ID
@@ -1192,7 +1174,7 @@ OS_REG_ID  OSTaskRegGetID (OS_ERR  *p_err)
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                       SET THE CURRENT VALUE OF A TASK REGISTER
@@ -1252,7 +1234,7 @@ void  OSTaskRegSet (OS_TCB     *p_tcb,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                               RESUME A SUSPENDED TASK
@@ -1331,7 +1313,7 @@ void  OSTaskResume (OS_TCB  *p_tcb,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                              WAIT FOR A TASK SEMAPHORE
@@ -1514,7 +1496,7 @@ OS_SEM_CTR  OSTaskSemPend (OS_TICK   timeout,
     return (ctr);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                               ABORT WAITING FOR A SIGNAL
@@ -1608,7 +1590,7 @@ CPU_BOOLEAN  OSTaskSemPendAbort (OS_TCB  *p_tcb,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                    SIGNAL A TASK
@@ -1694,7 +1676,7 @@ OS_SEM_CTR  OSTaskSemPost (OS_TCB  *p_tcb,
     return (ctr);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                            SET THE SIGNAL COUNTER OF A TASK
@@ -1749,7 +1731,7 @@ OS_SEM_CTR  OSTaskSemSet (OS_TCB      *p_tcb,
     return (ctr);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                    STACK CHECKING
@@ -1854,7 +1836,7 @@ void  OSTaskStkChk (OS_TCB        *p_tcb,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                   SUSPEND A TASK
@@ -1873,10 +1855,8 @@ void  OSTaskStkChk (OS_TCB        *p_tcb,
 *                           OS_ERR_TASK_SUSPEND_ISR          if you called this function from an ISR
 *                           OS_ERR_TASK_SUSPEND_IDLE         if you attempted to suspend the idle task which is not
 *                                                            allowed.
-*                           OS_ERR_TASK_SUSPEND_INT_HANDLER  if you attempted to suspend the interrupt handler task
-*                                                            which is not allowed.
-*
-* Returns    : none
+*                           OS_ERR_TASK_SUSPEND_INT_HANDLER  if you attempted to suspend the idle task which is not
+*                                                            allowed.
 *
 * Note(s)    : 1) You should use this function with great care.  If you suspend a task that is waiting for an event
 *                 (i.e. a message, a semaphore, a queue ...) you will prevent this task from running when the event
@@ -1931,7 +1911,7 @@ void   OSTaskSuspend (OS_TCB  *p_tcb,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                CHANGE A TASK'S TIME SLICE
@@ -1993,7 +1973,7 @@ void  OSTaskTimeQuantaSet (OS_TCB   *p_tcb,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                            ADD/REMOVE TASK TO/FROM DEBUG LIST
@@ -2052,7 +2032,7 @@ void  OS_TaskDbgListRemove (OS_TCB  *p_tcb)
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                             TASK MANAGER INITIALIZATION
@@ -2089,7 +2069,7 @@ void  OS_TaskInit (OS_ERR  *p_err)
    *p_err            = OS_ERR_NONE;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                               INITIALIZE TCB FIELDS
@@ -2234,10 +2214,6 @@ void  OS_TaskInitTCB (OS_TCB  *p_tcb)
     p_tcb->TaskState          = (OS_STATE       )OS_TASK_STATE_RDY;
 
     p_tcb->Prio               = (OS_PRIO        )OS_PRIO_INIT;
-#if OS_CFG_MUTEX_EN > 0u
-    p_tcb->BasePrio           = (OS_PRIO        )OS_PRIO_INIT;
-    p_tcb->MutexGrpHeadPtr    = (OS_MUTEX      *)0;
-#endif
 
 #if OS_CFG_DBG_EN > 0u
     p_tcb->DbgPrevPtr         = (OS_TCB        *)0;
@@ -2246,7 +2222,7 @@ void  OS_TaskInitTCB (OS_TCB  *p_tcb)
 #endif
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                               POST MESSAGE TO A TASK
@@ -2352,7 +2328,7 @@ void  OS_TaskQPost (OS_TCB       *p_tcb,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                               RESUME A SUSPENDED TASK
@@ -2438,7 +2414,7 @@ void  OS_TaskResume (OS_TCB  *p_tcb,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                              CATCH ACCIDENTAL TASK RETURN
@@ -2473,7 +2449,7 @@ void  OS_TaskReturn (void)
 #endif
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                    SIGNAL A TASK
@@ -2617,7 +2593,7 @@ OS_SEM_CTR  OS_TaskSemPost (OS_TCB  *p_tcb,
     return (ctr);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                   SUSPEND A TASK
@@ -2648,10 +2624,11 @@ OS_SEM_CTR  OS_TaskSemPost (OS_TCB  *p_tcb,
 */
 
 #if OS_CFG_TASK_SUSPEND_EN > 0u
-void  OS_TaskSuspend (OS_TCB  *p_tcb,
-                      OS_ERR  *p_err)
+void   OS_TaskSuspend (OS_TCB  *p_tcb,
+                       OS_ERR  *p_err)
 {
     CPU_SR_ALLOC();
+
 
 
     CPU_CRITICAL_ENTER();
@@ -2712,111 +2689,3 @@ void  OS_TaskSuspend (OS_TCB  *p_tcb,
     OSSched();
 }
 #endif
-
-
-/*
-************************************************************************************************************************
-*                                               CHANGE PRIORITY OF A TASK
-*
-* Description: This function is called by the kernel to perform the actual operation of changing a task's priority.
-*              Priority inheritance is updated if necessary.
-*
-*
-*
-* Argument(s): p_tcb        is a pointer to the tcb of the task to change the priority.
-*
-*              prio_new     is the new priority to give to the task.
-*
-*
-* Returns    : none.
-*
-* Note(s)    : 1) This function is INTERNAL to uC/OS-III and your application MUST NOT call it.
-************************************************************************************************************************
-*/
-
-void  OS_TaskChangePrio(OS_TCB  *p_tcb,
-                        OS_PRIO  prio_new)
-{
-    OS_TCB  *p_tcb_owner;
-#if OS_CFG_MUTEX_EN > 0
-    OS_PRIO  prio_cur;
-#endif
-
-
-    do {
-        p_tcb_owner = (OS_TCB *)0;
-#if OS_CFG_MUTEX_EN > 0
-        prio_cur    = p_tcb->Prio;
-#endif
-        switch (p_tcb->TaskState) {
-            case OS_TASK_STATE_RDY:
-                 OS_RdyListRemove(p_tcb);                   /* Remove from current priority                           */
-                 p_tcb->Prio = prio_new;                    /* Set new task priority                                  */
-                 OS_PrioInsert(p_tcb->Prio);
-                 if (p_tcb == OSTCBCurPtr) {
-                     OS_RdyListInsertHead(p_tcb);
-                 } else {
-                     OS_RdyListInsertTail(p_tcb);
-                 }
-                 break;
-
-            case OS_TASK_STATE_DLY:                         /* Nothing to do except change the priority in the OS_TCB */
-            case OS_TASK_STATE_SUSPENDED:
-            case OS_TASK_STATE_DLY_SUSPENDED:
-                 p_tcb->Prio = prio_new;                    /* Set new task priority                                  */
-                 break;
-
-            case OS_TASK_STATE_PEND:
-            case OS_TASK_STATE_PEND_TIMEOUT:
-            case OS_TASK_STATE_PEND_SUSPENDED:
-            case OS_TASK_STATE_PEND_TIMEOUT_SUSPENDED:
-                 p_tcb->Prio = prio_new;                    /* Set new task priority                                  */
-                 switch (p_tcb->PendOn) {                   /* What to do depends on what we are pending on           */
-                     case OS_TASK_PEND_ON_FLAG:
-                     case OS_TASK_PEND_ON_MULTI:
-                     case OS_TASK_PEND_ON_Q:
-                     case OS_TASK_PEND_ON_SEM:
-                          OS_PendListChangePrio(p_tcb);
-                          break;
-
-                     case OS_TASK_PEND_ON_MUTEX:
-#if OS_CFG_MUTEX_EN > 0
-                          OS_PendListChangePrio(p_tcb);
-                          p_tcb_owner = ((OS_MUTEX *)p_tcb->PendDataTblPtr->PendObjPtr)->OwnerTCBPtr;
-                          if (prio_cur > prio_new) {         /* Are we increasing the priority?                        */
-                              if (p_tcb_owner->Prio <= prio_new) {/* Yes, do we need to give this prio to the owner?   */
-                                  p_tcb_owner = (OS_TCB *)0;
-                              } else {
-#if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
-                                 TRACE_OS_MUTEX_TASK_PRIO_INHERIT(p_tcb_owner, prio_new);
-#endif
-                              }
-                          } else {
-                              if (p_tcb_owner->Prio == prio_cur) {/* No, is it required to check for a lower prio?     */
-                                  prio_new = OS_MutexGrpPrioFindHighest(p_tcb_owner);
-                                  prio_new = prio_new > p_tcb_owner->BasePrio ? p_tcb_owner->BasePrio : prio_new;
-                                  if (prio_new == p_tcb_owner->Prio) {
-                                      p_tcb_owner = (OS_TCB *)0;
-                                  } else {
-#if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
-                                     TRACE_OS_MUTEX_TASK_PRIO_DISINHERIT(p_tcb_owner, prio_new);
-#endif
-                                  }
-                              }
-                          }
-#endif
-                         break;
-
-                     case OS_TASK_PEND_ON_TASK_Q:
-                     case OS_TASK_PEND_ON_TASK_SEM:
-                     default:
-                          break;
-                 }
-                 break;
-
-            default:
-                 return;
-        }
-        p_tcb = p_tcb_owner;
-    } while (p_tcb != (OS_TCB *)0);
-}

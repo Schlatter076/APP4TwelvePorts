@@ -1,19 +1,21 @@
 /*
 *********************************************************************************************************
-*                                            EXAMPLE CODE
+*                                                uC/LIB
+*                                        CUSTOM LIBRARY MODULES
 *
-*               This file is provided as an example on how to use Micrium products.
+*                          (c) Copyright 2004-2012; Micrium, Inc.; Weston, FL
 *
-*               Please feel free to use any application code labeled as 'EXAMPLE CODE' in
-*               your application products.  Example code may be used as is, in whole or in
-*               part, or may be used as a reference only. This file can be modified as
-*               required to meet the end-product requirements.
+*               All rights reserved.  Protected by international copyright laws.
 *
-*               Please help us continue to provide the Embedded community with the finest
+*               uC/LIB is provided in source form to registered licensees ONLY.  It is 
+*               illegal to distribute this source code to any third party unless you receive 
+*               written permission by an authorized Micrium representative.  Knowledge of 
+*               the source code may NOT be used to develop a similar product.
+*
+*               Please help us continue to provide the Embedded community with the finest 
 *               software available.  Your honesty is greatly appreciated.
 *
-*               You can find information about uC/LIB by visiting doc.micrium.com.
-*               You can contact us at: http://www.micrium.com
+*               You can contact us at www.micrium.com.
 *********************************************************************************************************
 */
 
@@ -25,9 +27,8 @@
 *                                              TEMPLATE
 *
 * Filename      : lib_cfg.h
-* Version       : V1.38.01.00
-* Programmer(s) : FBJ
-*                 JFD
+* Version       : V1.37.01
+* Programmer(s) : ITJ
 *********************************************************************************************************
 */
 
@@ -42,6 +43,7 @@
 #define  LIB_CFG_MODULE_PRESENT
 
 
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *********************************************************************************************************
@@ -57,19 +59,18 @@
 * Note(s) : (1) Configure LIB_MEM_CFG_ARG_CHK_EXT_EN to enable/disable the memory library suite external
 *               argument check feature :
 *
-*               (a) When ENABLED,     arguments received from any port interface provided by the developer
+*               (a) When ENABLED,      arguments received from any port interface provided by the developer
 *                   or application are checked/validated.
 *
-*               (b) When DISABLED, NO arguments received from any port interface provided by the developer
+*               (b) When DISABLED, NO  arguments received from any port interface provided by the developer
 *                   or application are checked/validated.
 *********************************************************************************************************
 */
 
-                                                                /* External argument check.                             */
-                                                                /* Indicates if arguments received from any port ...    */
-                                                                /* ... interface provided by the developer or ...       */
-                                                                /* ... application are checked/validated.               */
+                                                        /* Configure external argument check feature (see Note #1) :    */
 #define  LIB_MEM_CFG_ARG_CHK_EXT_EN     DEF_DISABLED
+                                                        /*   DEF_DISABLED     Argument check DISABLED                   */
+                                                        /*   DEF_ENABLED      Argument check ENABLED                    */
 
 
 /*
@@ -80,54 +81,45 @@
 *********************************************************************************************************
 */
 
-                                                                /* Assembly-optimized function(s).                      */
-                                                                /* Enable/disable assembly-optimized memory ...         */
-                                                                /* ... function(s). [see Note #1]                       */
+                                                        /* Configure assembly-optimized function(s) [see Note #1] :     */
 #define  LIB_MEM_CFG_OPTIMIZE_ASM_EN    DEF_ENABLED
+                                                        /*   DEF_DISABLED     Assembly-optimized function(s) DISABLED   */
+                                                        /*   DEF_ENABLED      Assembly-optimized function(s) ENABLED    */
 
 
 /*
 *********************************************************************************************************
 *                                   MEMORY ALLOCATION CONFIGURATION
 *
-* Note(s) : (1) Configure LIB_MEM_CFG_DBG_INFO_EN to enable/disable memory allocation usage tracking
-*               that associates a name with each segment or dynamic pool allocated.
+* Note(s) : (1) Configure LIB_MEM_CFG_ALLOC_EN to enable/disable memory allocation functions.
 *
 *           (2) (a) Configure LIB_MEM_CFG_HEAP_SIZE with the desired size of heap memory (in octets).
 *
 *               (b) Configure LIB_MEM_CFG_HEAP_BASE_ADDR to specify a base address for heap memory :
 *
-*                   (1) Heap initialized to specified application memory, if LIB_MEM_CFG_HEAP_BASE_ADDR
-*                                                                                #define'd in 'lib_cfg.h';
-*                                                                         CANNOT #define to address 0x0
+*                   (1) Heap initialized to specified application memory,  if LIB_MEM_CFG_HEAP_BASE_ADDR
+*                                                                                 #define'd in 'app_cfg.h'; 
+*                                                                          CANNOT #define to address 0x0
 *
-*                   (2) Heap declared to Mem_Heap[] in 'lib_mem.c',       if LIB_MEM_CFG_HEAP_BASE_ADDR
-*                                                                            NOT #define'd in 'lib_cfg.h'
+*                   (2) Heap declared to Mem_Heap[] in 'lib_mem.c',        if LIB_MEM_CFG_HEAP_BASE_ADDR
+*                                                                             NOT #define'd in 'app_cfg.h'
 *********************************************************************************************************
 */
 
-                                                                /* Allocation debugging information.                    */
-                                                                /* Enable/disable allocation of debug information ...   */
-                                                                /* ... associated to each memory allocation.            */
-#define  LIB_MEM_CFG_DBG_INFO_EN        DEF_DISABLED
+                                                        /* Configure memory allocation feature (see Note #1) :          */
+#define  LIB_MEM_CFG_ALLOC_EN           DEF_ENABLED
+                                                        /*   DEF_DISABLED     Memory allocation DISABLED                */
+                                                        /*   DEF_ENABLED      Memory allocation ENABLED                 */
 
 
-                                                                /* Heap memory size (in bytes).                         */
-                                                                /* Configure the desired size of the heap memory. ...   */
-                                                                /* ... Set to 0 to disable heap allocation features.    */
-#define  LIB_MEM_CFG_HEAP_SIZE            (3u * 1024u)
+#define  LIB_MEM_CFG_HEAP_SIZE            (1u * 1024u)  /* Configure heap memory size         [see Note #2a].           */
 
-
-                                                                /* Heap memory padding alignment (in bytes).            */
-                                                                /* Configure the desired size of padding alignment ...  */
-                                                                /* ... of each buffer allocated from the heap.          */
-#define  LIB_MEM_CFG_HEAP_PADDING_ALIGN    LIB_MEM_PADDING_ALIGN_NONE
-
-#if 0                                                           /* Remove this to have heap alloc at specified addr.    */
-#define  LIB_MEM_CFG_HEAP_BASE_ADDR       0x00000000            /* Configure heap memory base address (see Note #2b).   */
+#if 0                                                   /* Configure heap memory base address (see Note #2b).           */
+#define  LIB_MEM_CFG_HEAP_BASE_ADDR       0x00000000u
 #endif
 
 
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *********************************************************************************************************
@@ -142,30 +134,29 @@
 *
 * Note(s) : (1) Configure LIB_STR_CFG_FP_EN to enable/disable floating point string function(s).
 *
-*           (2) Configure LIB_STR_CFG_FP_MAX_NBR_DIG_SIG to configure the maximum number of significant
+*           (2) Configure LIB_STR_CFG_FP_MAX_NBR_DIG_SIG to configure the maximum number of significant 
 *               digits to calculate &/or display for floating point string function(s).
 *
 *               See also 'lib_str.h  STRING FLOATING POINT DEFINES  Note #1'.
 *********************************************************************************************************
 */
 
-                                                                /* Floating point feature(s).                           */
-                                                                /* Enable/disable floating point to string functions.   */
+                                                                /* Configure floating point feature(s) [see Note #1] :  */
 #define  LIB_STR_CFG_FP_EN                      DEF_DISABLED
+                                                                /*   DEF_DISABLED     Floating point functions DISABLED */
+                                                                /*   DEF_ENABLED      Floating point functions ENABLED  */
 
-
-                                                                /* Floating point number of significant digits.         */
-                                                                /* Configure the maximum number of significant ...      */
-                                                                /* ... digits to calculate &/or display for ...         */
-                                                                /* ... floating point string function(s).               */
+                                                                /* Configure floating point feature(s)' number of ...   */
+                                                                /* ... significant digits (see Note #2).                */
 #define  LIB_STR_CFG_FP_MAX_NBR_DIG_SIG         LIB_STR_FP_MAX_NBR_DIG_SIG_DFLT
 
 
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                             MODULE END
 *********************************************************************************************************
 */
 
-#endif                                                          /* End of lib cfg module include.                       */
+#endif                                                  /* End of lib cfg module include.                               */
 

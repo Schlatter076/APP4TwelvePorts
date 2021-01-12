@@ -3,22 +3,19 @@
 *                                                uC/LIB
 *                                        CUSTOM LIBRARY MODULES
 *
-*                         (c) Copyright 2004-2014; Micrium, Inc.; Weston, FL
+*                          (c) Copyright 2004-2013; Micrium, Inc.; Weston, FL
 *
-*                  All rights reserved.  Protected by international copyright laws.
+*               All rights reserved.  Protected by international copyright laws.
 *
-*                  uC/LIB is provided in source form to registered licensees ONLY.  It is
-*                  illegal to distribute this source code to any third party unless you receive
-*                  written permission by an authorized Micrium representative.  Knowledge of
-*                  the source code may NOT be used to develop a similar product.
+*               uC/LIB is provided in source form to registered licensees ONLY.  It is
+*               illegal to distribute this source code to any third party unless you receive
+*               written permission by an authorized Micrium representative.  Knowledge of
+*               the source code may NOT be used to develop a similar product.
 *
-*                  Please help us continue to provide the Embedded community with the finest
-*                  software available.  Your honesty is greatly appreciated.
+*               Please help us continue to provide the Embedded community with the finest
+*               software available.  Your honesty is greatly appreciated.
 *
-*                  You can find our product's user manual, API reference, release notes and
-*                  more information at: https://doc.micrium.com
-*
-*                  You can contact us at: http://www.micrium.com
+*               You can contact us at www.micrium.com.
 *********************************************************************************************************
 */
 
@@ -28,7 +25,7 @@
 *                                     CORE CUSTOM LIBRARY MODULE
 *
 * Filename      : lib_def.h
-* Version       : V1.38.01
+* Version       : V1.37.02
 * Programmer(s) : ITJ
 *                 FBJ
 *                 JFD
@@ -97,7 +94,7 @@
 *********************************************************************************************************
 */
 
-#define  LIB_VERSION                                   13801u   /* See Note #1.                                         */
+#define  LIB_VERSION                                   13702u   /* See Note #1.                                         */
 
 
 /*
@@ -473,7 +470,6 @@ typedef enum lib_err {
     LIB_MEM_ERR_INVALID_MEM_ALIGN           =     10101u,       /* Invalid mem     align.                               */
     LIB_MEM_ERR_INVALID_SEG_SIZE            =     10110u,       /* Invalid mem seg size.                                */
     LIB_MEM_ERR_INVALID_SEG_OVERLAP         =     10111u,       /* Invalid mem seg overlaps other mem seg(s).           */
-    LIB_MEM_ERR_INVALID_SEG_EXISTS          =     10112u,       /* Invalid mem seg already exists.                      */
     LIB_MEM_ERR_INVALID_POOL                =     10120u,       /* Invalid mem pool.                                    */
     LIB_MEM_ERR_INVALID_BLK_NBR             =     10130u,       /* Invalid mem pool blk nbr.                            */
     LIB_MEM_ERR_INVALID_BLK_SIZE            =     10131u,       /* Invalid mem pool blk size.                           */
@@ -486,7 +482,6 @@ typedef enum lib_err {
     LIB_MEM_ERR_SEG_OVF                     =     10201u,       /* Mem seg  ovf;   i.e. req'd mem ovfs rem mem in seg.  */
     LIB_MEM_ERR_POOL_FULL                   =     10205u,       /* Mem pool full;  i.e. all mem blks avail in mem pool. */
     LIB_MEM_ERR_POOL_EMPTY                  =     10206u,       /* Mem pool empty; i.e. NO  mem blks avail in mem pool. */
-    LIB_MEM_ERR_POOL_UNLIMITED              =     10207u,       /* Mem pool is unlimited.                               */
 
     LIB_MEM_ERR_HEAP_EMPTY                  =     10210u,       /* Heap seg empty; i.e. NO avail mem in heap.           */
     LIB_MEM_ERR_HEAP_OVF                    =     10211u,       /* Heap seg ovf;   i.e. req'd mem ovfs rem mem in heap. */
@@ -773,13 +768,13 @@ typedef enum lib_err {
 *********************************************************************************************************
 */
 
-#define  DEF_BIT_SET_08(val, mask)                     DEF_BIT_SET((val), (mask))
+#define  DEF_BIT_SET_08(val, mask)                     DEF_BIT_SET(val, mask)
 
-#define  DEF_BIT_SET_16(val, mask)                     DEF_BIT_SET((val), (mask))
+#define  DEF_BIT_SET_16(val, mask)                     DEF_BIT_SET(val, mask)
 
-#define  DEF_BIT_SET_32(val, mask)                     DEF_BIT_SET((val), (mask))
+#define  DEF_BIT_SET_32(val, mask)                     DEF_BIT_SET(val, mask)
 
-#define  DEF_BIT_SET_64(val, mask)                     DEF_BIT_SET((val), (mask))
+#define  DEF_BIT_SET_64(val, mask)                     DEF_BIT_SET(val, mask)
 
 
 /*
@@ -823,107 +818,13 @@ typedef enum lib_err {
 *********************************************************************************************************
 */
 
-#define  DEF_BIT_CLR_08(val, mask)                     DEF_BIT_CLR((val), (mask))
+#define  DEF_BIT_CLR_08(val, mask)                     DEF_BIT_CLR(val, mask)
 
-#define  DEF_BIT_CLR_16(val, mask)                     DEF_BIT_CLR((val), (mask))
+#define  DEF_BIT_CLR_16(val, mask)                     DEF_BIT_CLR(val, mask)
 
-#define  DEF_BIT_CLR_32(val, mask)                     DEF_BIT_CLR((val), (mask))
+#define  DEF_BIT_CLR_32(val, mask)                     DEF_BIT_CLR(val, mask)
 
-#define  DEF_BIT_CLR_64(val, mask)                     DEF_BIT_CLR((val), (mask))
-
-
-/*
-*********************************************************************************************************
-*                                            DEF_BIT_TOGGLE()
-*
-* Description : Toggles specified bit(s) in a value.
-*
-* Argument(s) : val         Value to modify by toggling specified bit(s).
-*
-*               mask        Mask of bits to toggle.
-*
-* Return(s)   : Modified value with specified bit(s) toggled.
-*
-* Caller(s)   : Application.
-*
-* Note(s)     : (1) 'val' & 'mask' SHOULD be unsigned integers.
-*********************************************************************************************************
-*/
-
-#define  DEF_BIT_TOGGLE(val, mask)                      ((val) ^= (mask))
-
-
-/*
-*********************************************************************************************************
-*                                           DEF_BIT_FIELD_RD()
-*
-* Description : Reads a 'val' field, masked and shifted, given by mask 'field_mask'.
-*
-* Argument(s) : val         Value to read from.
-*
-*               field_mask  Mask of field to read. See note #1, #2 and #3.
-*
-* Return(s)   : Field value, masked and right-shifted to bit position 0.
-*
-* Caller(s)   : Application.
-*
-* Note(s)     : (1) 'field_mask' argument must NOT be 0.
-*
-*               (2) 'field_mask' argument must contain a mask with contiguous set bits.
-*
-*               (3) 'val' & 'field_mask' SHOULD be unsigned integers.
-*********************************************************************************************************
-*/
-
-#define  DEF_BIT_FIELD_RD(val, field_mask)              (((val) & (field_mask)) / ((field_mask) & ~((field_mask) << 1u)))
-
-
-/*
-*********************************************************************************************************
-*                                          DEF_BIT_FIELD_ENC()
-*
-* Description : Encodes given 'field_val' at position given by mask 'field_mask'.
-*
-* Argument(s) : field_val   Value to encode.
-*
-*               field_mask  Mask of field to read. See note #1 and #2.
-*
-* Return(s)   : Field value, masked and left-shifted to field position.
-*
-* Caller(s)   : Application.
-*
-* Note(s)     : (1) 'field_mask' argument must contain a mask with contiguous set bits.
-*
-*               (2) 'field_val' & 'field_mask' SHOULD be unsigned integers.
-*********************************************************************************************************
-*/
-
-#define  DEF_BIT_FIELD_ENC(field_val, field_mask)       (((field_val) * ((field_mask) & ~((field_mask) << 1u))) & (field_mask))
-
-
-/*
-*********************************************************************************************************
-*                                           DEF_BIT_FIELD_WR()
-*
-* Description : Writes 'field_val' field at position given by mask 'field_mask' in variable 'var'.
-*
-* Argument(s) : var         Variable to write field to. See note #2.
-*
-*               field_val   Desired value for field. See note #2.
-*
-*               field_mask  Mask of field to write to. See note #1 and #2.
-*
-* Return(s)   : None.
-*
-* Caller(s)   : Application.
-*
-* Note(s)     : (1) 'field_mask' argument must contain a mask with contiguous set bits.
-*
-*               (2) 'var', 'field_val' & 'field_mask' SHOULD be unsigned integers.
-*********************************************************************************************************
-*/
-
-#define  DEF_BIT_FIELD_WR(var, field_val, field_mask)   (var) = (((var) & ~(field_mask)) | DEF_BIT_FIELD_ENC((field_val), (field_mask)))
+#define  DEF_BIT_CLR_64(val, mask)                     DEF_BIT_CLR(val, mask)
 
 
 /*
@@ -948,8 +849,8 @@ typedef enum lib_err {
 *********************************************************************************************************
 */
 
-#define  DEF_BIT_IS_SET(val, mask)                    (((((val) & (mask)) == (mask)) && \
-                                                         ((mask)          !=  0u))    ? (DEF_YES) : (DEF_NO))
+#define  DEF_BIT_IS_SET(val, mask)                           ((((mask)  !=  0u)  && \
+                                                      (((val) & (mask)) == (mask))) ? (DEF_YES) : (DEF_NO ))
 
 
 /*
@@ -974,8 +875,8 @@ typedef enum lib_err {
 *********************************************************************************************************
 */
 
-#define  DEF_BIT_IS_CLR(val, mask)                    (((((val) & (mask)) ==  0u)  && \
-                                                         ((mask)          !=  0u))  ? (DEF_YES) : (DEF_NO))
+#define  DEF_BIT_IS_CLR(val, mask)                           ((((mask)  !=  0u)  && \
+                                                      (((val) & (mask)) ==  0u))    ? (DEF_YES) : (DEF_NO ))
 
 
 /*
@@ -1178,8 +1079,8 @@ typedef enum lib_err {
 *********************************************************************************************************
 */
 
-#define  DEF_CHK_VAL(val, val_min, val_max)          (((DEF_CHK_VAL_MIN((val), (val_min)) == DEF_FAIL) ||                  \
-                                                       (DEF_CHK_VAL_MAX((val), (val_max)) == DEF_FAIL)) ? DEF_FAIL : DEF_OK)
+#define  DEF_CHK_VAL(val, val_min, val_max)          (((DEF_CHK_VAL_MIN(val, val_min) == DEF_FAIL) ||                  \
+                                                       (DEF_CHK_VAL_MAX(val, val_max) == DEF_FAIL)) ? DEF_FAIL : DEF_OK)
 
 
 /*

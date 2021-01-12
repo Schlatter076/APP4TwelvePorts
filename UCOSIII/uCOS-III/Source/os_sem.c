@@ -3,14 +3,14 @@
 *                                                      uC/OS-III
 *                                                 The Real-Time Kernel
 *
-*                                  (c) Copyright 2009-2014; Micrium, Inc.; Weston, FL
+*                                  (c) Copyright 2009-2013; Micrium, Inc.; Weston, FL
 *                           All rights reserved.  Protected by international copyright laws.
 *
 *                                                 SEMAPHORE MANAGEMENT
 *
 * File    : OS_SEM.C
 * By      : JJL
-* Version : V3.04.04
+* Version : V3.04.01
 *
 * LICENSING TERMS:
 * ---------------
@@ -26,9 +26,7 @@
 *           Please help us continue to provide the embedded community with the finest software available.
 *           Your honesty is greatly appreciated.
 *
-*           You can find our product's user manual, API reference, release notes and
-*           more information at https://doc.micrium.com.
-*           You can contact us at www.micrium.com.
+*           You can contact us at www.micrium.com, or by phone at +1 (954) 217-2036.
 ************************************************************************************************************************
 */
 
@@ -135,7 +133,7 @@ void  OSSemCreate (OS_SEM      *p_sem,
    *p_err = OS_ERR_NONE;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                  DELETE A SEMAPHORE
@@ -279,7 +277,7 @@ OS_OBJ_QTY  OSSemDel (OS_SEM  *p_sem,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                  PEND ON SEMAPHORE
@@ -293,7 +291,7 @@ OS_OBJ_QTY  OSSemDel (OS_SEM  *p_sem,
 *                            0, however, your task will wait forever at the specified semaphore or, until the resource
 *                            becomes available (or the event occurs).
 *
-*              opt           determines whether the user wants to block if the semaphore is available or not:
+*              opt           determines whether the user wants to block if the semaphore is not available or not:
 *
 *                                OS_OPT_PEND_BLOCKING
 *                                OS_OPT_PEND_NON_BLOCKING
@@ -490,7 +488,7 @@ OS_SEM_CTR  OSSemPend (OS_SEM   *p_sem,
     return (ctr);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                             ABORT WAITING ON A SEMAPHORE
@@ -606,7 +604,7 @@ OS_OBJ_QTY  OSSemPendAbort (OS_SEM  *p_sem,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                 POST TO A SEMAPHORE
@@ -717,7 +715,7 @@ OS_SEM_CTR  OSSemPost (OS_SEM  *p_sem,
     return (ctr);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                    SET SEMAPHORE
@@ -797,7 +795,7 @@ void  OSSemSet (OS_SEM      *p_sem,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                           CLEAR THE CONTENTS OF A SEMAPHORE
@@ -827,7 +825,7 @@ void  OS_SemClr (OS_SEM  *p_sem)
     OS_PendListInit(&p_sem->PendList);                      /* Initialize the waiting list                            */
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                        ADD/REMOVE SEMAPHORE TO/FROM DEBUG LIST
@@ -888,7 +886,7 @@ void  OS_SemDbgListRemove (OS_SEM  *p_sem)
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                SEMAPHORE INITIALIZATION
@@ -923,7 +921,7 @@ void  OS_SemInit (OS_ERR  *p_err)
    *p_err           = OS_ERR_NONE;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                 POST TO A SEMAPHORE

@@ -83,14 +83,14 @@ bool WIFI_Net_Mode_Choose(ENUM_Net_ModeTypeDef enumMode)
 	{
 	case STA:
 		return Send_AT_Cmd(InWifi, "AT+CWMODE_CUR=1", "OK", "no change", 1800,
-				2);
+				2, ENABLE);
 
 	case AP:
 		return Send_AT_Cmd(InWifi, "AT+CWMODE_CUR=2", "OK", "no change", 1800,
-				2);
+				2, ENABLE);
 
 	case STA_AP:
-		return Send_AT_Cmd(InWifi, "AT+CWMODE_CUR", "OK", "no change", 1800, 2);
+		return Send_AT_Cmd(InWifi, "AT+CWMODE_CUR", "OK", "no change", 1800, 2, ENABLE);
 
 	default:
 		return false;
@@ -109,7 +109,7 @@ bool WIFI_JoinAP(char * pSSID, char * pPassWord)
 	bool ret = false;
 	cCmd = mymalloc(120);
 	snprintf(cCmd, 120, "AT+CWJAP_CUR=\"%s\",\"%s\"", pSSID, pPassWord);
-	ret = Send_AT_Cmd(InWifi, cCmd, "OK", NULL, 1800, 2);
+	ret = Send_AT_Cmd(InWifi, cCmd, "OK", NULL, 1800, 2, ENABLE);
 	myfree(cCmd);
 	return ret;
 }
@@ -125,7 +125,7 @@ bool WIFI_Enable_MultipleId(FunctionalState enumEnUnvarnishTx)
 	bool ret = false;
 	cStr = mymalloc(20);
 	snprintf(cStr, 20, "AT+CIPMUX=%d", (enumEnUnvarnishTx ? 1 : 0));
-	ret = Send_AT_Cmd(InWifi, cStr, "OK", 0, 500, 2);
+	ret = Send_AT_Cmd(InWifi, cStr, "OK", 0, 500, 2, ENABLE);
 	return ret;
 }
 
@@ -164,7 +164,7 @@ bool WIFI_Link_Server(ENUM_NetPro_TypeDef enumE, char * ip, char* ComNum,
 	else
 		sprintf(cCmd, "AT+CIPSTART=%s", cStr);
 
-	rc = Send_AT_Cmd(InWifi, cCmd, "OK", "ALREAY CONNECT", 1800, 2);
+	rc = Send_AT_Cmd(InWifi, cCmd, "OK", "ALREAY CONNECT", 1800, 2, ENABLE);
 	myfree(cStr);
 	myfree(cCmd);
 	return rc;
@@ -176,10 +176,10 @@ bool WIFI_Link_Server(ENUM_NetPro_TypeDef enumE, char * ip, char* ComNum,
  */
 bool WIFI_UnvarnishSend(void)
 {
-	if (!Send_AT_Cmd(InWifi, "AT+CIPMODE=1", "OK", 0, 500, 2))
+	if (!Send_AT_Cmd(InWifi, "AT+CIPMODE=1", "OK", 0, 500, 2, ENABLE))
 		return false;
 
-	return Send_AT_Cmd(InWifi, "AT+CIPSEND", "OK", ">", 500, 2);
+	return Send_AT_Cmd(InWifi, "AT+CIPSEND", "OK", ">", 500, 2, ENABLE);
 
 }
 
@@ -228,10 +228,10 @@ void WIFI_Send(const char *data)
 	p_str = mymalloc(BASE64_BUF_LEN);
 	base64_encode((const unsigned char *) data, p_str);
 	snprintf(buf, 20, "AT+CIPSENDEX=%d", strlen((const char *) p_str) + 3);
-	if (Send_AT_Cmd(InWifi, buf, ">", NULL, 200, 2))
+	if (Send_AT_Cmd(InWifi, buf, ">", NULL, 200, 2, DISABLE))
 	{
 		_USART_Printf(InWifi, "{(%s}", p_str);
-		DEBUG("wifi<<%s", data);
+		DEBUG("wifi<<%s\r\n", data);
 	}
 	myfree(p_str);
 	myfree(buf);
@@ -254,7 +254,7 @@ void WIFI_ExitUnvarnishSend(void)
  */
 u8 WIFI_Get_LinkStatus(void)
 {
-	if (Send_AT_Cmd(InWifi, "AT+CIPSTATUS", "OK", 0, 500, 2))
+	if (Send_AT_Cmd(InWifi, "AT+CIPSTATUS", "OK", 0, 500, 2, ENABLE))
 	{
 		if (strstr((const char *) WIFI_Fram.RxBuf, "STATUS:2\r\n"))
 			return 2;
@@ -285,11 +285,10 @@ bool ConnectToServerByWIFI(char* addr, char* port)
 	if (cnt < 8)
 	{
 		WIFI_Enable_MultipleId(DISABLE);
-		while (!WIFI_Link_Server(enumTCP, addr, port, Single_ID_0))
-			;
-//		while (!WIFI_UnvarnishSend())  //非透传模式
-//			;
-		return true;
+		if (WIFI_Link_Server(enumTCP, addr, port, Single_ID_0))
+		{
+			return true;
+		}
 	}
 	return false;
 }
@@ -346,10 +345,11 @@ void USART2_IRQHandler(void)
 		//关闭DMA
 		DMA_Cmd(DMA1_Stream5, DISABLE);
 		//清除标志位
-		DMA_ClearFlag(DMA1_Stream5, DMA_FLAG_TCIF1);
+		DMA_ClearFlag(DMA1_Stream5, DMA_FLAG_TCIF5);
 		//获得接收帧帧长
 		WIFI_Fram.AccessLen = TCP_MAX_LEN
 				- DMA_GetCurrDataCounter(DMA1_Stream5);
+		WIFI_Fram.RxBuf[WIFI_Fram.AccessLen] = '\0'; //添加结束符
 		//这里可以通知任务来处理数据
 #if SYSTEM_SUPPORT_OS
 		//推送接收完成

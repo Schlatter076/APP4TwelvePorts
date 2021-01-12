@@ -10,7 +10,7 @@
 @                                           ARM Cortex-M4 Port
 @
 @ File      : OS_CPU_A.ASM
-@ Version   : V3.04.04
+@ Version   : V3.03.02
 @ By        : JJL
 @             BAN
 @             JBL
@@ -138,47 +138,25 @@ OS_CPU_FP_Reg_Pop:
 
 .thumb_func
 OSStartHighRdy:
-    CPSID   I                                                   @ Prevent interruption during context switch
-    MOVW    R0, #:lower16:NVIC_SYSPRI14                         @ Set the PendSV exception priority
-    MOVT    R0, #:upper16:NVIC_SYSPRI14
-
-    MOVW    R1, #:lower16:NVIC_PENDSV_PRI
-    MOVT    R1, #:upper16:NVIC_PENDSV_PRI
+    LDR     R0, =NVIC_SYSPRI14                                  @ Set the PendSV exception priority
+    LDR     R1, =NVIC_PENDSV_PRI
     STRB    R1, [R0]
 
-    MOVW    R0, #:lower16:OS_CPU_ExceptStkBase                  @ Initialize the MSP to the OS_CPU_ExceptStkBase
-    MOVT    R0, #:upper16:OS_CPU_ExceptStkBase
+    MOVS    R0, #0                                              @ Set the PSP to 0 for initial context switch call
+    MSR     PSP, R0
+
+    LDR     R0, =OS_CPU_ExceptStkBase                           @ Initialize the MSP to the OS_CPU_ExceptStkBase
     LDR     R1, [R0]
-    MSR     MSP, R1
+    MSR     MSP, R1    
 
-    MOVW    R0, #:lower16:OSPrioCur                             @ OSPrioCur   = OSPrioHighRdy;
-    MOVT    R0, #:upper16:OSPrioCur
-    MOVW    R1, #:lower16:OSPrioHighRdy
-    MOVT    R1, #:upper16:OSPrioHighRdy
-    LDRB    R2, [R1]
-    STRB    R2, [R0]
+    LDR     R0, =NVIC_INT_CTRL                                  @ Trigger the PendSV exception (causes context switch)
+    LDR     R1, =NVIC_PENDSVSET
+    STR     R1, [R0]
+    
+    CPSIE   I                                                   @ Enable interrupts at processor level
 
-    MOVW    R5, #:lower16:OSTCBCurPtr
-    MOVT    R5, #:upper16:OSTCBCurPtr
-    MOVW    R1, #:lower16:OSTCBHighRdyPtr                       @ OSTCBCurPtr = OSTCBHighRdyPtr;
-    MOVT    R1, #:upper16:OSTCBHighRdyPtr
-    LDR     R2, [R1]
-    STR     R2, [R5]
-
-    LDR     R0, [R2]                                            @ R0 is new process SP; SP = OSTCBHighRdyPtr->StkPtr;
-    MSR     PSP, R0                                             @ Load PSP with new process SP
-
-    MRS     R0, CONTROL
-    ORR     R0, R0, #2
-    MSR     CONTROL, R0
-    ISB                                                         @ Sync instruction stream
-
-    LDMFD    SP!, {R4-R11}                                      @ Restore r4-11 from new process stack
-    LDMFD    SP!, {R0-R3}                                       @ Restore r0, r3
-    LDMFD    SP!, {R12, LR}                                     @ Load R12 and LR
-    LDMFD    SP!, {R1, R2}                                      @ Load PC and discard xPSR
-    CPSIE    I
-    BX       R1
+OSStartHang:
+    B       OSStartHang                                         @ Should never get here
 
 
 @********************************************************************************************************
@@ -251,33 +229,37 @@ OSIntCtxSw:
 OS_CPU_PendSVHandler:
     CPSID   I                                                   @ Prevent interruption during context switch
     MRS     R0, PSP                                             @ PSP is process stack pointer
-    STMFD   R0!, {R4-R11}                                       @ Save remaining regs r4-11 on process stack
+    CBZ     R0, OS_CPU_PendSVHandler_nosave                     @ Skip register save the first time
 
-    MOVW    R5, #:lower16:OSTCBCurPtr                           @ OSTCBCurPtr->OSTCBStkPtr = SP;
-    MOVT    R5, #:upper16:OSTCBCurPtr
-    LDR     R6, [R5]
-    STR     R0, [R6]                                            @ R0 is SP of process being switched out
+    SUBS    R0, R0, #0x20                                       @ Save remaining regs r4-11 on process stack
+    STM     R0, {R4-R11}
+
+    LDR     R1, =OSTCBCurPtr                                    @ OSTCBCurPtr->OSTCBStkPtr = SP;
+    LDR     R1, [R1]
+    STR     R0, [R1]                                            @ R0 is SP of process being switched out
 
                                                                 @ At this point, entire context of process has been saved
-    MOV     R4, LR                                              @ Save LR exc_return value
-    BL      OSTaskSwHook                                        @ OSTaskSwHook();
+OS_CPU_PendSVHandler_nosave:
+    PUSH    {R14}                                               @ Save LR exc_return value
+    LDR     R0, =OSTaskSwHook                                   @ OSTaskSwHook();
+    BLX     R0
+    POP     {R14}
 
-    MOVW    R0, #:lower16:OSPrioCur                             @ OSPrioCur   = OSPrioHighRdy;
-    MOVT    R0, #:upper16:OSPrioCur
-    MOVW    R1, #:lower16:OSPrioHighRdy
-    MOVT    R1, #:upper16:OSPrioHighRdy
+    LDR     R0, =OSPrioCur                                      @ OSPrioCur   = OSPrioHighRdy;
+    LDR     R1, =OSPrioHighRdy
     LDRB    R2, [R1]
     STRB    R2, [R0]
 
-    MOVW    R1, #:lower16:OSTCBHighRdyPtr                      @ OSTCBCurPtr = OSTCBHighRdyPtr;
-    MOVT    R1, #:upper16:OSTCBHighRdyPtr
+    LDR     R0, =OSTCBCurPtr                                    @ OSTCBCurPtr = OSTCBHighRdyPtr;
+    LDR     R1, =OSTCBHighRdyPtr
     LDR     R2, [R1]
-    STR     R2, [R5]
+    STR     R2, [R0]
 
-    ORR     LR, R4, #0xF4                                       @ Ensure exception return uses process stack
     LDR     R0, [R2]                                            @ R0 is new process SP; SP = OSTCBHighRdyPtr->StkPtr;
-    LDMFD   R0!, {R4-R11}                                       @ Restore r4-11 from new process stack
+    LDM     R0, {R4-R11}                                        @ Restore r4-11 from new process stack
+    ADDS    R0, R0, #0x20
     MSR     PSP, R0                                             @ Load PSP with new process SP
+    ORR     LR, LR, #0xF4                                       @ Ensure exception return uses process stack
     CPSIE   I
     BX      LR                                                  @ Exception return will restore remaining context
 

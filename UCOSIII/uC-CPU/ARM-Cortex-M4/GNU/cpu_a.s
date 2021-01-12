@@ -14,8 +14,6 @@
 @               Please help us continue to provide the Embedded community with the finest
 @               software available.  Your honesty is greatly appreciated.
 @
-@               You can find our product's user manual, API reference, release notes and
-@               more information at https://doc.micrium.com.
 @               You can contact us at www.micrium.com.
 @********************************************************************************************************
 
@@ -27,7 +25,7 @@
 @                                            GNU C Compiler
 @
 @ Filename      : cpu_a.asm
-@ Version       : V1.30.01.00
+@ Version       : V1.29.02.00
 @ Programmer(s) : JJL
 @********************************************************************************************************
 

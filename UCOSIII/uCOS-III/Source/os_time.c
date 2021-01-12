@@ -3,14 +3,14 @@
 *                                                      uC/OS-III
 *                                                 The Real-Time Kernel
 *
-*                                  (c) Copyright 2009-2014; Micrium, Inc.; Weston, FL
+*                                  (c) Copyright 2009-2013; Micrium, Inc.; Weston, FL
 *                           All rights reserved.  Protected by international copyright laws.
 *
 *                                                   TIME MANAGEMENT
 *
 * File    : OS_TIME.C
 * By      : JJL
-* Version : V3.04.04
+* Version : V3.04.01
 *
 * LICENSING TERMS:
 * ---------------
@@ -26,9 +26,7 @@
 *           Please help us continue to provide the embedded community with the finest software available.
 *           Your honesty is greatly appreciated.
 *
-*           You can find our product's user manual, API reference, release notes and
-*           more information at https://doc.micrium.com.
-*           You can contact us at www.micrium.com.
+*           You can contact us at www.micrium.com, or by phone at +1 (954) 217-2036.
 ************************************************************************************************************************
 */
 
@@ -142,7 +140,7 @@ void  OSTimeDly (OS_TICK   dly,
    *p_err = OS_ERR_NONE;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                             DELAY TASK FOR SPECIFIED TIME
@@ -328,13 +326,13 @@ void  OSTimeDlyHMSM (CPU_INT16U   hours,
     }
 }
 #endif
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                RESUME A DELAYED TASK
 *
 * Description: This function is used resume a task that has been delayed through a call to either OSTimeDly() or
-*              OSTimeDlyHMSM().  Note that you cannot call this function to resume a task that is waiting for an event
+*              OSTimeDlyHMSM().  Note that cannot call this function to resume a task that is waiting for an event
 *              with timeout.
 *
 * Arguments  : p_tcb    is a pointer to the TCB of the task to resume.
@@ -444,7 +442,7 @@ void  OSTimeDlyResume (OS_TCB  *p_tcb,
     OSSched();
 }
 #endif
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                               GET CURRENT SYSTEM TIME
@@ -517,7 +515,7 @@ void  OSTimeSet (OS_TICK   ticks,
    *p_err     = OS_ERR_NONE;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                 PROCESS SYSTEM TICK

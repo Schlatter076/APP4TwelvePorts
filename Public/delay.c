@@ -60,11 +60,19 @@ void delay_ostimedly(u32 ticks)
 //systick中断服务函数,使用OS时用到
 void SysTick_Handler(void)
 {
-	if (delay_osrunning == OS_STATE_OS_RUNNING)					//OS开始跑了,才执行正常的调度处理
+	if (delay_osrunning == OS_STATE_OS_RUNNING)				//OS开始跑了,才执行正常的调度处理
 	{
-		OSIntEnter();						//进入中断
-		OSTimeTick();       				//调用ucos的时钟服务程序
-		OSIntExit();       	 				//触发任务切换软中断
+		CPU_SR_ALLOC();
+
+		CPU_CRITICAL_ENTER()
+		;
+		OSIntNestingCtr++; /* Tell uC/OS-III that we are starting an ISR             */
+		CPU_CRITICAL_EXIT()
+		;
+
+		OSTimeTick(); /* Call uC/OS-III's OSTimeTick()                          */
+
+		OSIntExit(); /* Tell uC/OS-III that we are leaving the ISR             */
 	}
 }
 #endif

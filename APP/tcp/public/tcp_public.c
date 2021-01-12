@@ -6,7 +6,7 @@
  */
 #include "tcp_public.h"
 
-const char Heart[] = "H";
+const char Heart[] = "";
 
 struct STRUCT_USART_Fram F4G_Fram =
 { 0 };
@@ -74,7 +74,7 @@ void AnalyzeServerParams(void)
 	tem++;
 	inx = 0;
 	memset(buf, '\0', 3);
-	while (*tem != '-')
+	while (*tem)
 	{
 		buf[inx++] = *tem;
 		tem++;
@@ -154,7 +154,7 @@ void DEBUG(const char *fmt, ...)
  * @return 1：发送成功 0：失败
  */
 bool Send_AT_Cmd(ENUM_Internet_TypeDef internet, char *cmd, char *ack1,
-		char *ack2, u32 time, u16 retry)
+		char *ack2, u32 time, u16 retry, FunctionalState printState)
 {
 	struct STRUCT_USART_Fram *USART_Fram = NULL;
 	OS_FLAGS flag = 0;
@@ -187,7 +187,11 @@ bool Send_AT_Cmd(ENUM_Internet_TypeDef internet, char *cmd, char *ack1,
 				(OS_ERR*) &err); //错误码
 
 		//调试打印
-		DEBUG("%s\r\n", USART_Fram->RxBuf);
+		if (printState)
+		{
+			DEBUG("%s\r\n", USART_Fram->RxBuf);
+		}
+
 		if (err == OS_ERR_NONE)
 		{
 			if (ack1 != 0 && ack2 != 0)
@@ -235,12 +239,13 @@ bool AT_Test(ENUM_Internet_TypeDef internet)
 	}
 	while (count++ < 8)
 	{
-		if (Send_AT_Cmd(internet, "AT", "OK", NULL, 100, 2))
-		{
-			DEBUG("test %s success!\r\n", module);
-			myfree(module);
-			return 1;
-		}
+		Send_AT_Cmd(internet, "AT", "OK", NULL, 100, 2, ENABLE);
+	}
+	if (Send_AT_Cmd(internet, "AT", "OK", NULL, 100, 2, ENABLE))
+	{
+		DEBUG("test %s success!\r\n", module);
+		myfree(module);
+		return 1;
 	}
 	DEBUG("test %s fail!\r\n", module);
 	myfree(module);

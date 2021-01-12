@@ -155,7 +155,7 @@ typedef enum
 void AnalyzeServerParams(void);
 void _USART_Printf(ENUM_Internet_TypeDef net, const char *fmt, ...);
 bool Send_AT_Cmd(ENUM_Internet_TypeDef internet, char *cmd, char *ack1,
-		char *ack2, u32 time, u16 retry);
+		char *ack2, u32 time, u16 retry, FunctionalState printState);
 bool AT_Test(ENUM_Internet_TypeDef internet);
 void DEBUG(const char *fmt, ...);
 void getWifiSsidAndPwd(char *datas);

@@ -3,14 +3,14 @@
 *                                                      uC/OS-III
 *                                                 The Real-Time Kernel
 *
-*                                  (c) Copyright 2009-2014; Micrium, Inc.; Weston, FL
+*                                  (c) Copyright 2009-2013; Micrium, Inc.; Weston, FL
 *                           All rights reserved.  Protected by international copyright laws.
 *
 *                                       OS CONFIGURATION (APPLICATION SPECIFICS)
 *
 * File    : OS_CFG_APP.C
 * By      : JJL
-* Version : V3.04.04
+* Version : V3.04.01
 *
 * LICENSING TERMS:
 * ---------------
@@ -26,9 +26,7 @@
 *           Please help us continue to provide the embedded community with the finest software available.
 *           Your honesty is greatly appreciated.
 *
-*           You can find our product's user manual, API reference, release notes and
-*           more information at https://doc.micrium.com.
-*           You can contact us at www.micrium.com.
+*           You can contact us at www.micrium.com, or by phone at +1 (954) 217-2036.
 ************************************************************************************************************************
 * Note(s) : DO NOT CHANGE THIS FILE!
 ************************************************************************************************************************
@@ -79,6 +77,7 @@ CPU_STK        OSCfg_TickTaskStk   [OS_CFG_TICK_TASK_STK_SIZE];
 CPU_STK        OSCfg_TmrTaskStk    [OS_CFG_TMR_TASK_STK_SIZE];
 #endif
 
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                      CONSTANTS
@@ -177,6 +176,7 @@ CPU_INT32U     const  OSCfg_TmrTaskStkSizeRAM    = (CPU_INT32U  )0;
 #endif
 
 
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                         TOTAL SIZE OF APPLICATION CONFIGURATION
@@ -207,7 +207,7 @@ CPU_INT32U     const  OSCfg_DataSizeRAM          = sizeof(OSCfg_IdleTaskStk)
 #endif
                                                  + sizeof(OSCfg_TickTaskStk);
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                             OS CONFIGURATION INITIALIZATION

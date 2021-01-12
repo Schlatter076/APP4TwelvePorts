@@ -3,14 +3,14 @@
 *                                                      uC/OS-III
 *                                                 The Real-Time Kernel
 *
-*                                  (c) Copyright 2009-2014; Micrium, Inc.; Weston, FL
+*                                  (c) Copyright 2009-2013; Micrium, Inc.; Weston, FL
 *                           All rights reserved.  Protected by international copyright laws.
 *
 *                                              MESSAGE HANDLING SERVICES
 *
 * File    : OS_MSG.C
 * By      : JJL
-* Version : V3.04.04
+* Version : V3.04.01
 *
 * LICENSING TERMS:
 * ---------------
@@ -26,9 +26,7 @@
 *           Please help us continue to provide the embedded community with the finest software available.
 *           Your honesty is greatly appreciated.
 *
-*           You can find our product's user manual, API reference, release notes and
-*           more information at https://doc.micrium.com.
-*           You can contact us at www.micrium.com.
+*           You can contact us at www.micrium.com, or by phone at +1 (954) 217-2036.
 ************************************************************************************************************************
 */
 
@@ -41,7 +39,7 @@ const  CPU_CHAR  *os_msg__c = "$Id: $";
 
 
 #if OS_MSG_EN > 0u
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                            INITIALIZE THE POOL OF 'OS_MSG'
@@ -113,7 +111,7 @@ void  OS_MsgPoolInit (OS_ERR  *p_err)
    *p_err                =  OS_ERR_NONE;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                        RELEASE ALL MESSAGE IN MESSAGE QUEUE
@@ -153,7 +151,7 @@ OS_MSG_QTY  OS_MsgQFreeAll (OS_MSG_Q  *p_msg_q)
     return (qty);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                               INITIALIZE A MESSAGE QUEUE
@@ -183,7 +181,7 @@ void  OS_MsgQInit (OS_MSG_Q    *p_msg_q,
     p_msg_q->OutPtr         = (OS_MSG   *)0;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                           RETRIEVE MESSAGE FROM MESSAGE QUEUE
@@ -259,7 +257,7 @@ void  *OS_MsgQGet (OS_MSG_Q     *p_msg_q,
     return (p_void);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                           DEPOSIT MESSAGE IN MESSAGE QUEUE

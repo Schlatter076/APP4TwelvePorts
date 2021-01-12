@@ -3,14 +3,14 @@
 *                                                      uC/OS-III
 *                                                 The Real-Time Kernel
 *
-*                                  (c) Copyright 2009-2014; Micrium, Inc.; Weston, FL
+*                                  (c) Copyright 2009-2013; Micrium, Inc.; Weston, FL
 *                           All rights reserved.  Protected by international copyright laws.
 *
 *                                                   TIMER MANAGEMENT
 *
 * File    : OS_TMR.C
 * By      : JJL
-* Version : V3.04.04
+* Version : V3.04.01
 *
 * LICENSING TERMS:
 * ---------------
@@ -26,14 +26,12 @@
 *           Please help us continue to provide the embedded community with the finest software available.
 *           Your honesty is greatly appreciated.
 *
-*           You can find our product's user manual, API reference, release notes and
-*           more information at https://doc.micrium.com.
-*           You can contact us at www.micrium.com.
+*           You can contact us at www.micrium.com, or by phone at +1 (954) 217-2036.
 ************************************************************************************************************************
 */
 
 #define  MICRIUM_SOURCE
-#include "os.h"
+#include <os.h>
 
 #ifdef VSC_INCLUDE_SOURCE_FILE_NAMES
 const  CPU_CHAR  *os_tmr__c = "$Id: $";
@@ -59,7 +57,7 @@ const  CPU_CHAR  *os_tmr__c = "$Id: $";
 static  void  OS_TmrLock   (void);
 static  void  OS_TmrUnlock (void);
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                   CREATE A TIMER
@@ -198,7 +196,7 @@ void  OSTmrCreate (OS_TMR               *p_tmr,
    *p_err = OS_ERR_NONE;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                   DELETE A TIMER
@@ -298,7 +296,7 @@ CPU_BOOLEAN  OSTmrDel (OS_TMR  *p_tmr,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                    GET HOW MUCH TIME IS LEFT BEFORE A TIMER EXPIRES
@@ -402,7 +400,7 @@ OS_TICK  OSTmrRemainGet (OS_TMR  *p_tmr,
     return (remain);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                   START A TIMER
@@ -516,7 +514,7 @@ CPU_BOOLEAN  OSTmrStart (OS_TMR  *p_tmr,
     return (success);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                           FIND OUT WHAT STATE A TIMER IS IN
@@ -593,7 +591,7 @@ OS_STATE  OSTmrStateGet (OS_TMR  *p_tmr,
     return (state);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                    STOP A TIMER
@@ -723,7 +721,7 @@ CPU_BOOLEAN  OSTmrStop (OS_TMR  *p_tmr,
     return (success);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                 CLEAR TIMER FIELDS
@@ -758,7 +756,7 @@ void  OS_TmrClr (OS_TMR  *p_tmr)
     p_tmr->PrevPtr        = (OS_TMR            *)0;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                         ADD/REMOVE TIMER TO/FROM DEBUG TABLE
@@ -818,7 +816,7 @@ void  OS_TmrDbgListRemove (OS_TMR  *p_tmr)
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                             INITIALIZE THE TIMER MANAGER
@@ -906,7 +904,7 @@ void  OS_TmrInit (OS_ERR  *p_err)
                  (OS_ERR     *)p_err);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                              RESET TIMER LIST PEAK DETECTOR
@@ -925,7 +923,7 @@ void  OS_TmrResetPeak (void)
 {
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                         REMOVE A TIMER FROM THE TIMER LIST
@@ -968,7 +966,7 @@ void  OS_TmrUnlink (OS_TMR  *p_tmr)
     OSTmrListEntries--;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                 TIMER MANAGEMENT TASK
@@ -1039,7 +1037,7 @@ void  OS_TmrTask (void  *p_arg)
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                          TIMER MANAGEMENT LOCKING MECHANISM
@@ -1064,7 +1062,7 @@ static  void  OS_TmrLock (void)
 
 
     OSMutexPend(&OSTmrMutex,                                /* Use a mutex to protect the timers                      */
-                0u,
+                0,
                 OS_OPT_PEND_BLOCKING,
                 &ts,
                 &err);

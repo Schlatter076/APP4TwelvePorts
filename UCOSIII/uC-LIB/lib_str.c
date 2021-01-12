@@ -3,22 +3,19 @@
 *                                                uC/LIB
 *                                        CUSTOM LIBRARY MODULES
 *
-*                         (c) Copyright 2004-2014; Micrium, Inc.; Weston, FL
+*                          (c) Copyright 2004-2013; Micrium, Inc.; Weston, FL
 *
-*                  All rights reserved.  Protected by international copyright laws.
+*               All rights reserved.  Protected by international copyright laws.
 *
-*                  uC/LIB is provided in source form to registered licensees ONLY.  It is
-*                  illegal to distribute this source code to any third party unless you receive
-*                  written permission by an authorized Micrium representative.  Knowledge of
-*                  the source code may NOT be used to develop a similar product.
+*               uC/LIB is provided in source form to registered licensees ONLY.  It is
+*               illegal to distribute this source code to any third party unless you receive
+*               written permission by an authorized Micrium representative.  Knowledge of
+*               the source code may NOT be used to develop a similar product.
 *
-*                  Please help us continue to provide the Embedded community with the finest
-*                  software available.  Your honesty is greatly appreciated.
+*               Please help us continue to provide the Embedded community with the finest
+*               software available.  Your honesty is greatly appreciated.
 *
-*                  You can find our product's user manual, API reference, release notes and
-*                  more information at: https://doc.micrium.com
-*
-*                  You can contact us at: http://www.micrium.com
+*               You can contact us at www.micrium.com.
 *********************************************************************************************************
 */
 
@@ -28,7 +25,7 @@
 *                                       ASCII STRING MANAGEMENT
 *
 * Filename      : lib_str.c
-* Version       : V1.38.01
+* Version       : V1.37.02
 * Programmer(s) : ITJ
 *                 BAN
 *                 JDH
@@ -871,7 +868,7 @@ CPU_INT16S  Str_Cmp_N (const  CPU_CHAR    *p1_str,
         if (p2_str == (const CPU_CHAR *)0) {
             return (0);                                         /* If BOTH str ptrs NULL, rtn 0       (see Note #3a1A). */
         }
-        cmp_val = (CPU_INT16S)((CPU_INT16S)0 - (CPU_INT16S)(*p2_str));
+        cmp_val = (CPU_INT16S)0 - (CPU_INT16S)(*p2_str);
         return (cmp_val);                                       /* If p1_str NULL, rtn neg p2_str val (see Note #3a1B1).*/
     }
     if (p2_str == (const CPU_CHAR *)0) {
@@ -907,7 +904,7 @@ CPU_INT16S  Str_Cmp_N (const  CPU_CHAR    *p1_str,
 
     if (*p1_str_cmp != *p2_str_cmp) {                           /* If strs NOT identical, ...                           */
                                                                 /* ... calc & rtn char diff  (see Note #3c1).           */
-         cmp_val = (CPU_INT16S)((CPU_INT16S)(*p1_str_cmp) - (CPU_INT16S)(*p2_str_cmp));
+         cmp_val = (CPU_INT16S)(*p1_str_cmp) - (CPU_INT16S)(*p2_str_cmp);
 
     } else if (*p1_str_cmp  == (CPU_CHAR)'\0') {                /* If NULL char(s) found, ...                           */
          cmp_val = (CPU_INT16S)0;                               /* ... strs identical; rtn 0 (see Note #3b).            */
@@ -918,7 +915,7 @@ CPU_INT16S  Str_Cmp_N (const  CPU_CHAR    *p1_str,
                 cmp_val = (CPU_INT16S)0;                        /* ... rtn 0                       (see Note #3a2A).    */
             } else {                                            /* If p1_str_cmp_next NULL, ...                         */
                                                                 /* ... rtn neg p2_str_cmp_next val (see Note #3a2B1).   */
-                cmp_val = (CPU_INT16S)((CPU_INT16S)0 - (CPU_INT16S)(*p2_str_cmp_next));
+                cmp_val = (CPU_INT16S)0 - (CPU_INT16S)(*p2_str_cmp_next);
             }
         } else {                                                /* If p2_str_cmp_next NULL, ...                         */
             cmp_val = (CPU_INT16S)(*p1_str_cmp_next);           /* ... rtn pos p1_str_cmp_next val (see Note #3a2B2).   */
@@ -1149,7 +1146,7 @@ CPU_INT16S  Str_CmpIgnoreCase_N (const  CPU_CHAR    *p1_str,
             return (0);                                         /* If BOTH str ptrs NULL, rtn 0       (see Note #3a1A). */
         }
         char_2  =  ASCII_ToLower(*p2_str);
-        cmp_val = (CPU_INT16S)((CPU_INT16S)0 - (CPU_INT16S)char_2);
+        cmp_val = (CPU_INT16S)0 - (CPU_INT16S)char_2;
         return (cmp_val);                                       /* If p1_str NULL, rtn neg p2_str val (see Note #3a1B1).*/
     }
     if (p2_str == (const CPU_CHAR *)0) {
@@ -1189,8 +1186,7 @@ CPU_INT16S  Str_CmpIgnoreCase_N (const  CPU_CHAR    *p1_str,
     }
 
     if (char_1 != char_2) {                                     /* If strs NOT identical, ...                           */
-                                                                /* ... calc & rtn char diff  (see Note #3c1).           */
-         cmp_val = (CPU_INT16S)((CPU_INT16S)char_1 - (CPU_INT16S)char_2);
+         cmp_val = (CPU_INT16S)char_1 - (CPU_INT16S)char_2;     /* ... calc & rtn char diff  (see Note #3c1).           */
 
     } else if (char_1 == (CPU_CHAR)'\0') {                      /* If NULL char(s) found, ...                           */
          cmp_val = (CPU_INT16S)0;                               /* ... strs identical; rtn 0 (see Note #3b).            */
@@ -1201,8 +1197,7 @@ CPU_INT16S  Str_CmpIgnoreCase_N (const  CPU_CHAR    *p1_str,
                 cmp_val = (CPU_INT16S)0;                        /* ... rtn 0                       (see Note #3a2A).    */
             } else {                                            /* If p1_str_cmp_next NULL, ...                         */
                 char_2  =  ASCII_ToLower(*p2_str_cmp_next);
-                                                                /* ... rtn neg p2_str_cmp_next val (see Note #3a2B1).   */
-                cmp_val = (CPU_INT16S)((CPU_INT16S)0 - (CPU_INT16S)char_2);
+                cmp_val = (CPU_INT16S)0 - (CPU_INT16S)char_2;   /* ... rtn neg p2_str_cmp_next val (see Note #3a2B1).   */
             }
         } else {                                                /* If p2_str_cmp_next NULL, ...                         */
             char_1  =  ASCII_ToLower(*p1_str_cmp_next);
@@ -2745,7 +2740,7 @@ CPU_CHAR  *Str_FmtNbr_32 (CPU_FP32      nbr,
                                                                 /* If nbr sig digs < max, fmt str dps;    ...           */
                 if (nbr_dig_sig <  LIB_STR_CFG_FP_MAX_NBR_DIG_SIG) {
                     nbr_shiftd  = (CPU_INT32U)(nbr_fmt * dp_exp);
-                    dig_val     = (CPU_INT08U)(nbr_shiftd % 10u);
+                    dig_val     = (CPU_INT32U)(nbr_shiftd % 10u);
                    *pstr_fmt++  = (CPU_CHAR  )(dig_val    + '0');
                     dp_exp     *=  10.0f;                       /* Shift to next least-sig dp.                          */
 
@@ -3515,8 +3510,7 @@ static  CPU_CHAR  *Str_FmtNbr_Int32 (CPU_INT32U    nbr,
 
 
                                                                 /* ----------------- PREPARE NBR FMT ------------------ */
-    pstr_fmt    = pstr;
-    lead_char_0 = DEF_NO;
+    pstr_fmt = pstr;
 
     if (fmt_invalid == DEF_NO) {
         nbr_fmt     = nbr;
@@ -3544,6 +3538,8 @@ static  CPU_CHAR  *Str_FmtNbr_Int32 (CPU_INT32U    nbr,
             if (nbr_lead_char > 0) {                            /* If lead chars to fmt, ...                            */
                 lead_char_0 = (lead_char == '0')                /* ... chk if lead char a '0' dig (see Note #3a2B).     */
                             ?  DEF_YES : DEF_NO;
+            } else {
+                lead_char_0 =  DEF_NO;
             }
 
         } else {                                                /* Else if nbr trunc'd, ...                             */

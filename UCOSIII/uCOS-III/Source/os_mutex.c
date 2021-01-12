@@ -3,14 +3,14 @@
 *                                                      uC/OS-III
 *                                                 The Real-Time Kernel
 *
-*                                  (c) Copyright 2009-2014; Micrium, Inc.; Weston, FL
+*                                  (c) Copyright 2009-2013; Micrium, Inc.; Weston, FL
 *                           All rights reserved.  Protected by international copyright laws.
 *
 *                                                   MUTEX MANAGEMENT
 *
 * File    : OS_MUTEX.C
 * By      : JJL
-* Version : V3.04.04
+* Version : V3.04.01
 *
 * LICENSING TERMS:
 * ---------------
@@ -26,9 +26,7 @@
 *           Please help us continue to provide the embedded community with the finest software available.
 *           Your honesty is greatly appreciated.
 *
-*           You can find our product's user manual, API reference, release notes and
-*           more information at https://doc.micrium.com.
-*           You can contact us at www.micrium.com.
+*           You can contact us at www.micrium.com, or by phone at +1 (954) 217-2036.
 ************************************************************************************************************************
 */
 
@@ -111,10 +109,10 @@ void  OSMutexCreate (OS_MUTEX  *p_mutex,
 #else
     (void)&p_name;
 #endif
-    p_mutex->MutexGrpNextPtr   = (OS_MUTEX     *)0;
     p_mutex->OwnerTCBPtr       = (OS_TCB       *)0;
     p_mutex->OwnerNestingCtr   = (OS_NESTING_CTR)0;         /* Mutex is available                                     */
     p_mutex->TS                = (CPU_TS        )0;
+    p_mutex->OwnerOriginalPrio =  OS_CFG_PRIO_MAX;
     OS_PendListInit(&p_mutex->PendList);                    /* Initialize the waiting list                            */
 
 #if OS_CFG_DBG_EN > 0u
@@ -131,7 +129,7 @@ void  OSMutexCreate (OS_MUTEX  *p_mutex,
    *p_err = OS_ERR_NONE;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                   DELETE A MUTEX
@@ -162,7 +160,9 @@ void  OSMutexCreate (OS_MUTEX  *p_mutex,
 * Note(s)    : 1) This function must be used with care.  Tasks that would normally expect the presence of the mutex MUST
 *                 check the return code of OSMutexPend().
 *
-*              2) Because ALL tasks pending on the mutex will be readied, you MUST be careful in applications where the
+*              2) OSMutexAccept() callers will not know that the intended mutex has been deleted.
+*
+*              3) Because ALL tasks pending on the mutex will be readied, you MUST be careful in applications where the
 *                 mutex is used for mutual exclusion because the resource(s) will no longer be guarded by the mutex.
 ************************************************************************************************************************
 */
@@ -179,9 +179,6 @@ OS_OBJ_QTY  OSMutexDel (OS_MUTEX  *p_mutex,
     OS_TCB        *p_tcb;
     OS_TCB        *p_tcb_owner;
     CPU_TS         ts;
-#if OS_CFG_MUTEX_EN > 0u
-    OS_PRIO        prio_new;
-#endif
     CPU_SR_ALLOC();
 
 
@@ -194,18 +191,18 @@ OS_OBJ_QTY  OSMutexDel (OS_MUTEX  *p_mutex,
 #endif
 
 #if OS_CFG_CALLED_FROM_ISR_CHK_EN > 0u
-    if (OSIntNestingCtr > (OS_NESTING_CTR)0) {                  /* Not allowed to delete a mutex from an ISR            */
+    if (OSIntNestingCtr > (OS_NESTING_CTR)0) {                  /* Not allowed to delete a mutex from an ISR          */
        *p_err = OS_ERR_DEL_ISR;
         return ((OS_OBJ_QTY)0);
     }
 #endif
 
 #if OS_CFG_ARG_CHK_EN > 0u
-    if (p_mutex == (OS_MUTEX *)0) {                             /* Validate 'p_mutex'                                   */
+    if (p_mutex == (OS_MUTEX *)0) {                             /* Validate 'p_mutex'                                 */
        *p_err = OS_ERR_OBJ_PTR_NULL;
         return ((OS_OBJ_QTY)0);
     }
-    switch (opt) {                                              /* Validate 'opt'                                       */
+    switch (opt) {                                              /* Validate 'opt'                                     */
         case OS_OPT_DEL_NO_PEND:
         case OS_OPT_DEL_ALWAYS:
              break;
@@ -217,7 +214,7 @@ OS_OBJ_QTY  OSMutexDel (OS_MUTEX  *p_mutex,
 #endif
 
 #if OS_CFG_OBJ_TYPE_CHK_EN > 0u
-    if (p_mutex->Type != OS_OBJ_TYPE_MUTEX) {                   /* Make sure mutex was created                          */
+    if (p_mutex->Type != OS_OBJ_TYPE_MUTEX) {                   /* Make sure mutex was created                        */
        *p_err = OS_ERR_OBJ_TYPE;
         return ((OS_OBJ_QTY)0);
     }
@@ -228,18 +225,15 @@ OS_OBJ_QTY  OSMutexDel (OS_MUTEX  *p_mutex,
     cnt         = p_pend_list->NbrEntries;
     nbr_tasks   = cnt;
     switch (opt) {
-        case OS_OPT_DEL_NO_PEND:                                /* Delete mutex only if no task waiting                 */
+        case OS_OPT_DEL_NO_PEND:                                /* Delete mutex only if no task waiting               */
              if (nbr_tasks == (OS_OBJ_QTY)0) {
 #if OS_CFG_DBG_EN > 0u
                  OS_MutexDbgListRemove(p_mutex);
 #endif
                  OSMutexQty--;
 #if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
-                 TRACE_OS_MUTEX_DEL(p_mutex);                   /* Record the event.                                    */
+                 TRACE_OS_MUTEX_DEL(p_mutex);                   /* Record the event.                                  */
 #endif
-                 if (p_mutex->OwnerTCBPtr != (OS_TCB *)0) {     /* Does the mutex belong to a task?                     */
-                     OS_MutexGrpRemove(p_mutex->OwnerTCBPtr, p_mutex); /* yes, remove it from the task group.           */
-                 }
                  OS_MutexClr(p_mutex);
                  OS_CRITICAL_EXIT();
                 *p_err = OS_ERR_NONE;
@@ -249,9 +243,50 @@ OS_OBJ_QTY  OSMutexDel (OS_MUTEX  *p_mutex,
              }
              break;
 
-        case OS_OPT_DEL_ALWAYS:                                 /* Always delete the mutex                              */
-             ts = OS_TS_GET();                                  /* Get timestamp                                        */
-             while (cnt > 0u) {                                 /* Remove all tasks from the pend list                  */
+        case OS_OPT_DEL_ALWAYS:                                            /* Always delete the mutex                 */
+             p_tcb_owner = p_mutex->OwnerTCBPtr;                           /* Did we had to change the prio of owner? */
+             if ((p_tcb_owner       != (OS_TCB *)0) &&
+                 (p_tcb_owner->Prio !=  p_mutex->OwnerOriginalPrio)) {
+                 switch (p_tcb_owner->TaskState) {                         /* yes                                     */
+                     case OS_TASK_STATE_RDY:
+                          OS_RdyListRemove(p_tcb_owner);
+                          p_tcb_owner->Prio = p_mutex->OwnerOriginalPrio;  /* Lower owner's prio back                 */
+#if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
+                          TRACE_OS_MUTEX_TASK_PRIO_DISINHERIT(p_tcb_owner, p_tcb_owner->Prio)
+#endif
+                          OS_PrioInsert(p_tcb_owner->Prio);
+                          OS_RdyListInsertTail(p_tcb_owner);               /* Insert owner in ready list at new prio  */
+                          break;
+
+                     case OS_TASK_STATE_DLY:
+                     case OS_TASK_STATE_SUSPENDED:
+                     case OS_TASK_STATE_DLY_SUSPENDED:
+                          p_tcb_owner->Prio = p_mutex->OwnerOriginalPrio;  /* Not in any pend list, change the prio   */
+#if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
+                          TRACE_OS_MUTEX_TASK_PRIO_DISINHERIT(p_tcb_owner, p_tcb_owner->Prio)
+#endif
+                          break;
+
+                     case OS_TASK_STATE_PEND:
+                     case OS_TASK_STATE_PEND_TIMEOUT:
+                     case OS_TASK_STATE_PEND_SUSPENDED:
+                     case OS_TASK_STATE_PEND_TIMEOUT_SUSPENDED:
+                          OS_PendListChangePrio(p_tcb_owner,               /* Owner is pending on another object      */
+                                                p_mutex->OwnerOriginalPrio);
+#if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
+                          TRACE_OS_MUTEX_TASK_PRIO_DISINHERIT(p_tcb_owner, p_tcb_owner->Prio)
+#endif
+                          break;
+
+                     default:
+                          OS_CRITICAL_EXIT();
+                         *p_err = OS_ERR_STATE_INVALID;
+                          return ((OS_OBJ_QTY)0);
+                 }
+             }
+
+             ts = OS_TS_GET();                                             /* Get timestamp                           */
+             while (cnt > 0u) {                                            /* Remove all tasks from the pend list     */
                  p_pend_data = p_pend_list->HeadPtr;
                  p_tcb       = p_pend_data->TCBPtr;
                  OS_PendObjDel((OS_PEND_OBJ *)((void *)p_mutex),
@@ -264,28 +299,11 @@ OS_OBJ_QTY  OSMutexDel (OS_MUTEX  *p_mutex,
 #endif
              OSMutexQty--;
 #if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
-             TRACE_OS_MUTEX_DEL(p_mutex);                       /* Record the event.                                    */
+             TRACE_OS_MUTEX_DEL(p_mutex);                                  /* Record the event.                       */
 #endif
-
-             p_tcb_owner = p_mutex->OwnerTCBPtr;
-             if (p_tcb_owner != (OS_TCB *)0) {                  /* Does the mutex belong to a task?                     */
-                 OS_MutexGrpRemove(p_tcb_owner, p_mutex);       /* yes, remove it from the task group.                  */
-             }
-
-
-             if ((p_tcb_owner       != (OS_TCB *)0) &&          /* Did we had to change the prio of owner?              */
-                 (p_tcb_owner->Prio !=  p_tcb_owner->BasePrio)) {
-                 prio_new = OS_MutexGrpPrioFindHighest(p_tcb_owner);
-                 prio_new = prio_new > p_tcb_owner->BasePrio ? p_tcb_owner->BasePrio : prio_new;
-                 OS_TaskChangePrio(p_tcb_owner, prio_new);
-#if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
-                          TRACE_OS_MUTEX_TASK_PRIO_DISINHERIT(p_tcb_owner, p_tcb_owner->Prio)
-#endif
-             }
-
              OS_MutexClr(p_mutex);
              OS_CRITICAL_EXIT_NO_SCHED();
-             OSSched();                                         /* Find highest priority task ready to run              */
+             OSSched();                                                    /* Find highest priority task ready to run */
             *p_err = OS_ERR_NONE;
              break;
 
@@ -298,7 +316,7 @@ OS_OBJ_QTY  OSMutexDel (OS_MUTEX  *p_mutex,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                    PEND ON MUTEX
@@ -415,11 +433,11 @@ void  OSMutexPend (OS_MUTEX  *p_mutex,
     CPU_CRITICAL_ENTER();
     if (p_mutex->OwnerNestingCtr == (OS_NESTING_CTR)0) {    /* Resource available?                                    */
         p_mutex->OwnerTCBPtr       =  OSTCBCurPtr;          /* Yes, caller may proceed                                */
+        p_mutex->OwnerOriginalPrio =  OSTCBCurPtr->Prio;
         p_mutex->OwnerNestingCtr   = (OS_NESTING_CTR)1;
         if (p_ts != (CPU_TS *)0) {
            *p_ts  = p_mutex->TS;
         }
-        OS_MutexGrpAdd(OSTCBCurPtr, p_mutex);               /* Add mutex to owner's group                             */
         CPU_CRITICAL_EXIT();
 #if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
         TRACE_OS_MUTEX_PEND(p_mutex);                       /* Record the event.                                      */
@@ -462,10 +480,42 @@ void  OSMutexPend (OS_MUTEX  *p_mutex,
     OS_CRITICAL_ENTER_CPU_EXIT();
     p_tcb = p_mutex->OwnerTCBPtr;                           /* Point to the TCB of the Mutex owner                    */
     if (p_tcb->Prio > OSTCBCurPtr->Prio) {                  /* See if mutex owner has a lower priority than current   */
-        OS_TaskChangePrio(p_tcb, OSTCBCurPtr->Prio);
+        switch (p_tcb->TaskState) {
+            case OS_TASK_STATE_RDY:
+                 OS_RdyListRemove(p_tcb);                   /* Remove from ready list at current priority             */
+                 p_tcb->Prio = OSTCBCurPtr->Prio;           /* Raise owner's priority                                 */
 #if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
                  TRACE_OS_MUTEX_TASK_PRIO_INHERIT(p_tcb, p_tcb->Prio);
 #endif
+                 OS_PrioInsert(p_tcb->Prio);
+                 OS_RdyListInsertHead(p_tcb);               /* Insert in ready list at new priority                   */
+                 break;
+
+            case OS_TASK_STATE_DLY:
+            case OS_TASK_STATE_DLY_SUSPENDED:
+            case OS_TASK_STATE_SUSPENDED:
+                 p_tcb->Prio = OSTCBCurPtr->Prio;           /* Only need to raise the owner's priority                */
+#if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
+                 TRACE_OS_MUTEX_TASK_PRIO_INHERIT(p_tcb, p_tcb->Prio);
+#endif
+                 break;
+
+            case OS_TASK_STATE_PEND:                        /* Change the position of the task in the wait list       */
+            case OS_TASK_STATE_PEND_TIMEOUT:
+            case OS_TASK_STATE_PEND_SUSPENDED:
+            case OS_TASK_STATE_PEND_TIMEOUT_SUSPENDED:
+                 OS_PendListChangePrio(p_tcb,
+                                       OSTCBCurPtr->Prio);
+#if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
+                 TRACE_OS_MUTEX_TASK_PRIO_INHERIT(p_tcb, p_tcb->Prio);
+#endif
+                 break;
+
+            default:
+                 OS_CRITICAL_EXIT();
+                *p_err = OS_ERR_STATE_INVALID;
+                 return;
+        }
     }
 
     OS_Pend(&pend_data,                                     /* Block task pending on Mutex                            */
@@ -531,7 +581,7 @@ void  OSMutexPend (OS_MUTEX  *p_mutex,
     CPU_CRITICAL_EXIT();
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                               ABORT WAITING ON A MUTEX
@@ -570,10 +620,8 @@ OS_OBJ_QTY  OSMutexPendAbort (OS_MUTEX  *p_mutex,
 {
     OS_PEND_LIST  *p_pend_list;
     OS_TCB        *p_tcb;
-    OS_TCB        *p_tcb_owner;
     CPU_TS         ts;
     OS_OBJ_QTY     nbr_tasks;
-    OS_PRIO        prio_new;
     CPU_SR_ALLOC();
 
 
@@ -586,18 +634,18 @@ OS_OBJ_QTY  OSMutexPendAbort (OS_MUTEX  *p_mutex,
 #endif
 
 #if OS_CFG_CALLED_FROM_ISR_CHK_EN > 0u
-    if (OSIntNestingCtr > (OS_NESTING_CTR)0u) {                 /* Not allowed to Pend Abort from an ISR                */
+    if (OSIntNestingCtr > (OS_NESTING_CTR)0u) {             /* Not allowed to Pend Abort from an ISR                  */
        *p_err =  OS_ERR_PEND_ABORT_ISR;
         return ((OS_OBJ_QTY)0u);
     }
 #endif
 
 #if OS_CFG_ARG_CHK_EN > 0u
-    if (p_mutex == (OS_MUTEX *)0) {                             /* Validate 'p_mutex'                                   */
+    if (p_mutex == (OS_MUTEX *)0) {                         /* Validate 'p_mutex'                                     */
        *p_err =  OS_ERR_OBJ_PTR_NULL;
         return ((OS_OBJ_QTY)0u);
     }
-    switch (opt) {                                              /* Validate 'opt'                                       */
+    switch (opt) {                                          /* Validate 'opt'                                         */
         case OS_OPT_PEND_ABORT_1:
         case OS_OPT_PEND_ABORT_ALL:
         case OS_OPT_PEND_ABORT_1   | OS_OPT_POST_NO_SCHED:
@@ -611,7 +659,7 @@ OS_OBJ_QTY  OSMutexPendAbort (OS_MUTEX  *p_mutex,
 #endif
 
 #if OS_CFG_OBJ_TYPE_CHK_EN > 0u
-    if (p_mutex->Type != OS_OBJ_TYPE_MUTEX) {                   /* Make sure mutex was created                          */
+    if (p_mutex->Type != OS_OBJ_TYPE_MUTEX) {               /* Make sure mutex was created                            */
        *p_err =  OS_ERR_OBJ_TYPE;
         return ((OS_OBJ_QTY)0u);
     }
@@ -619,46 +667,29 @@ OS_OBJ_QTY  OSMutexPendAbort (OS_MUTEX  *p_mutex,
 
     CPU_CRITICAL_ENTER();
     p_pend_list = &p_mutex->PendList;
-    if (p_pend_list->NbrEntries == (OS_OBJ_QTY)0u) {            /* Any task waiting on mutex?                           */
-        CPU_CRITICAL_EXIT();                                    /* No                                                   */
+    if (p_pend_list->NbrEntries == (OS_OBJ_QTY)0u) {        /* Any task waiting on mutex?                             */
+        CPU_CRITICAL_EXIT();                                /* No                                                     */
        *p_err =  OS_ERR_PEND_ABORT_NONE;
         return ((OS_OBJ_QTY)0u);
     }
 
     OS_CRITICAL_ENTER_CPU_EXIT();
     nbr_tasks = 0u;
-    ts        = OS_TS_GET();                                    /* Get local time stamp so all tasks get the same time  */
+    ts        = OS_TS_GET();                                /* Get local time stamp so all tasks get the same time    */
     while (p_pend_list->NbrEntries > (OS_OBJ_QTY)0u) {
         p_tcb = p_pend_list->HeadPtr->TCBPtr;
-
         OS_PendAbort((OS_PEND_OBJ *)((void *)p_mutex),
                      p_tcb,
                      ts);
-
-        p_tcb_owner = p_mutex->OwnerTCBPtr;
-        prio_new    = p_tcb_owner->Prio;
-        if ((p_tcb_owner->Prio != p_tcb_owner->BasePrio) &&
-            (p_tcb_owner->Prio == p_tcb->Prio)) {               /* Has the owner inherited a priority?                  */
-            prio_new = OS_MutexGrpPrioFindHighest(p_tcb_owner);
-            prio_new = prio_new > p_tcb_owner->BasePrio ? p_tcb_owner->BasePrio : prio_new;
-        }
-
-        if(prio_new != p_tcb_owner->Prio) {
-            OS_TaskChangePrio(p_tcb_owner, prio_new);
-#if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
-                          TRACE_OS_MUTEX_TASK_PRIO_DISINHERIT(p_tcb_owner, p_tcb_owner->Prio);
-#endif
-        }
-
         nbr_tasks++;
-        if (opt != OS_OPT_PEND_ABORT_ALL) {                     /* Pend abort all tasks waiting?                        */
-            break;                                              /* No                                                   */
+        if (opt != OS_OPT_PEND_ABORT_ALL) {                 /* Pend abort all tasks waiting?                          */
+            break;                                          /* No                                                     */
         }
     }
     OS_CRITICAL_EXIT_NO_SCHED();
 
     if ((opt & OS_OPT_POST_NO_SCHED) == (OS_OPT)0u) {
-        OSSched();                                              /* Run the scheduler                                    */
+        OSSched();                                          /* Run the scheduler                                      */
     }
 
    *p_err = OS_ERR_NONE;
@@ -666,7 +697,7 @@ OS_OBJ_QTY  OSMutexPendAbort (OS_MUTEX  *p_mutex,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                   POST TO A MUTEX
@@ -700,7 +731,6 @@ void  OSMutexPost (OS_MUTEX  *p_mutex,
     OS_PEND_LIST  *p_pend_list;
     OS_TCB        *p_tcb;
     CPU_TS         ts;
-    OS_PRIO        prio_new;
     CPU_SR_ALLOC();
 
 
@@ -781,8 +811,6 @@ void  OSMutexPost (OS_MUTEX  *p_mutex,
         return;
     }
 
-    OS_MutexGrpRemove(OSTCBCurPtr, p_mutex);                /* Remove mutex from owner's group                        */
-
     p_pend_list = &p_mutex->PendList;
     if (p_pend_list->NbrEntries == (OS_OBJ_QTY)0) {         /* Any task waiting on mutex?                             */
         p_mutex->OwnerTCBPtr     = (OS_TCB       *)0;       /* No                                                     */
@@ -792,25 +820,21 @@ void  OSMutexPost (OS_MUTEX  *p_mutex,
         return;
     }
                                                             /* Yes                                                    */
-    if (OSTCBCurPtr->Prio != OSTCBCurPtr->BasePrio) {       /* Has owner inherited a priority?                        */
-        prio_new = OS_MutexGrpPrioFindHighest(OSTCBCurPtr); /* Yes, find highest priority pending                     */
-        prio_new = prio_new > OSTCBCurPtr->BasePrio ? OSTCBCurPtr->BasePrio : prio_new;
-        if (prio_new > OSTCBCurPtr->Prio) {
-            OS_RdyListRemove(OSTCBCurPtr);
-            OSTCBCurPtr->Prio = prio_new;                   /* Lower owner's priority back to its original one        */
+    if (OSTCBCurPtr->Prio != p_mutex->OwnerOriginalPrio) {
+        OS_RdyListRemove(OSTCBCurPtr);
+        OSTCBCurPtr->Prio = p_mutex->OwnerOriginalPrio;     /* Lower owner's priority back to its original one        */
 #if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
-            TRACE_OS_MUTEX_TASK_PRIO_DISINHERIT(OSTCBCurPtr, prio_new);
+        TRACE_OS_MUTEX_TASK_PRIO_DISINHERIT(OSTCBCurPtr, OSTCBCurPtr->Prio);
 #endif
-            OS_PrioInsert(prio_new);
-            OS_RdyListInsertTail(OSTCBCurPtr);              /* Insert owner in ready list at new priority             */
-            OSPrioCur         = prio_new;
-        }
+        OS_PrioInsert(OSTCBCurPtr->Prio);
+        OS_RdyListInsertTail(OSTCBCurPtr);                  /* Insert owner in ready list at new priority             */
+        OSPrioCur         = OSTCBCurPtr->Prio;
     }
                                                             /* Get TCB from head of pend list                         */
     p_tcb                      = p_pend_list->HeadPtr->TCBPtr;
     p_mutex->OwnerTCBPtr       = p_tcb;                     /* Give mutex to new owner                                */
+    p_mutex->OwnerOriginalPrio = p_tcb->Prio;
     p_mutex->OwnerNestingCtr   = (OS_NESTING_CTR)1;
-    OS_MutexGrpAdd(p_tcb, p_mutex);
                                                             /* Post to mutex                                          */
     OS_Post((OS_PEND_OBJ *)((void *)p_mutex),
             (OS_TCB      *)p_tcb,
@@ -827,7 +851,7 @@ void  OSMutexPost (OS_MUTEX  *p_mutex,
    *p_err = OS_ERR_NONE;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                            CLEAR THE CONTENTS OF A MUTEX
@@ -852,14 +876,14 @@ void  OS_MutexClr (OS_MUTEX  *p_mutex)
 #if OS_CFG_DBG_EN > 0u
     p_mutex->NamePtr           = (CPU_CHAR     *)((void *)"?MUTEX");
 #endif
-    p_mutex->MutexGrpNextPtr   = (OS_MUTEX     *)0;
     p_mutex->OwnerTCBPtr       = (OS_TCB       *)0;
     p_mutex->OwnerNestingCtr   = (OS_NESTING_CTR)0;
     p_mutex->TS                = (CPU_TS        )0;
+    p_mutex->OwnerOriginalPrio =  OS_CFG_PRIO_MAX;
     OS_PendListInit(&p_mutex->PendList);                    /* Initialize the waiting list                            */
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                          ADD/REMOVE MUTEX TO/FROM DEBUG LIST
@@ -920,7 +944,7 @@ void  OS_MutexDbgListRemove (OS_MUTEX  *p_mutex)
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                MUTEX INITIALIZATION
@@ -953,168 +977,6 @@ void  OS_MutexInit (OS_ERR  *p_err)
 
     OSMutexQty        = (OS_OBJ_QTY)0;
    *p_err             =  OS_ERR_NONE;
-}
-
-
-/*
-************************************************************************************************************************
-*                                               MUTEX GROUP ADD
-*
-* Description: This function is called by the kernel to add a mutex to a task's mutex group.
-*
-
-* Argument(s): p_tcb        is a pointer to the tcb of the task to give the mutex to.
-*
-*              p_mutex      is a point to the mutex to add to the group.
-*
-*
-* Returns    : none
-*
-* Note(s)    : 1) This function is INTERNAL to uC/OS-III and your application MUST NOT call it.
-************************************************************************************************************************
-*/
-
-void  OS_MutexGrpAdd (OS_TCB  *p_tcb, OS_MUTEX  *p_mutex)
-{
-    p_mutex->MutexGrpNextPtr = p_tcb->MutexGrpHeadPtr;      /* The mutex grp is not sorted add to head of list.       */
-    p_tcb->MutexGrpHeadPtr   = p_mutex;
-}
-
-
-/*
-************************************************************************************************************************
-*                                              MUTEX GROUP REMOVE
-*
-* Description: This function is called by the kernel to remove a mutex to a task's mutex group.
-*
-
-* Argument(s): p_tcb        is a pointer to the tcb of the task to remove the mutex from.
-*
-*              p_mutex      is a point to the mutex to remove from the group.
-*
-*
-* Returns    : none
-*
-* Note(s)    : 1) This function is INTERNAL to uC/OS-III and your application MUST NOT call it.
-************************************************************************************************************************
-*/
-
-void  OS_MutexGrpRemove (OS_TCB  *p_tcb, OS_MUTEX  *p_mutex)
-{
-    OS_MUTEX  **pp_mutex;
-
-    pp_mutex = &p_tcb->MutexGrpHeadPtr;
-
-    while(*pp_mutex != p_mutex) {
-        pp_mutex = &(*pp_mutex)->MutexGrpNextPtr;
-    }
-
-    *pp_mutex = (*pp_mutex)->MutexGrpNextPtr;
-}
-
-
-/*
-************************************************************************************************************************
-*                                              MUTEX FIND HIGHEST PENDING
-*
-* Description: This function is called by the kernel to find the highest task pending on any mutex from a group.
-*
-
-* Argument(s): p_tcb        is a pointer to the tcb of the task to process.
-*
-*
-* Returns    : Highest priority pending or OS_CFG_PRIO_MAX - 1u if none found.
-*
-* Note(s)    : 1) This function is INTERNAL to uC/OS-III and your application MUST NOT call it.
-************************************************************************************************************************
-*/
-
-OS_PRIO  OS_MutexGrpPrioFindHighest (OS_TCB  *p_tcb)
-{
-    OS_MUTEX     **pp_mutex;
-    OS_PRIO        highest_prio;
-    OS_PRIO        prio;
-    OS_PEND_DATA  *p_head;
-
-
-    highest_prio = OS_CFG_PRIO_MAX - 1u;
-    pp_mutex = &p_tcb->MutexGrpHeadPtr;
-
-    while(*pp_mutex != (OS_MUTEX *)0) {
-        p_head = (*pp_mutex)->PendList.HeadPtr;
-        if (p_head!= (OS_PEND_DATA *)0) {
-            prio = p_head->TCBPtr->Prio;
-            if(prio < highest_prio) {
-                highest_prio = prio;
-            }
-        }
-        pp_mutex = &(*pp_mutex)->MutexGrpNextPtr;
-    }
-
-    return (highest_prio);
-}
-
-
-/*
-************************************************************************************************************************
-*                                               MUTEX GROUP POST ALL
-*
-* Description: This function is called by the kernel to post (release) all the mutex from a group. Used when deleting
-*              a task.
-*
-
-* Argument(s): p_tcb        is a pointer to the tcb of the task to process.
-*
-*
-* Returns    : none.
-*
-* Note(s)    : 1) This function is INTERNAL to uC/OS-III and your application MUST NOT call it.
-************************************************************************************************************************
-*/
-
-void  OS_MutexGrpPostAll (OS_TCB  *p_tcb)
-{
-    OS_MUTEX      *p_mutex;
-    OS_MUTEX      *p_mutex_next;
-    CPU_TS         ts;
-    OS_PEND_LIST  *p_pend_list;
-    OS_TCB        *p_tcb_new;
-
-
-    p_mutex = p_tcb->MutexGrpHeadPtr;
-
-    while(p_mutex != (OS_MUTEX *)0) {
-
-#if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
-    TRACE_OS_MUTEX_POST(p_mutex);                               /* Record the event.                                    */
-#endif
-
-        p_mutex_next = p_mutex->MutexGrpNextPtr;
-        ts           = OS_TS_GET();                             /* Get timestamp                                        */
-        p_mutex->TS  = ts;
-        OS_MutexGrpRemove(p_tcb,  p_mutex);                     /* Remove mutex from owner's group                      */
-
-        p_pend_list = &p_mutex->PendList;
-        if (p_pend_list->NbrEntries == (OS_OBJ_QTY)0) {         /* Any task waiting on mutex?                           */
-            p_mutex->OwnerNestingCtr =           0u;            /* Decrement owner's nesting counter                    */
-            p_mutex->OwnerTCBPtr     = (OS_TCB *)0;             /* No                                                   */
-        } else {
-                                                                /* Get TCB from head of pend list                       */
-            p_tcb_new = p_pend_list->HeadPtr->TCBPtr;
-            p_mutex->OwnerTCBPtr     = p_tcb;                   /* Give mutex to new owner                              */
-            p_mutex->OwnerNestingCtr = 1u;
-            OS_MutexGrpAdd(p_tcb_new, p_mutex);
-                                                                /* Post to mutex                                        */
-            OS_Post((OS_PEND_OBJ *)((void *)p_mutex),
-                                            p_tcb_new,
-                                    (void *)0,
-                                            0u,
-                                            ts);
-        }
-
-        p_mutex = p_mutex_next;
-    }
-
 }
 
 #endif                                                      /* OS_CFG_MUTEX_EN                                        */

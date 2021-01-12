@@ -3,14 +3,14 @@
 *                                                      uC/OS-III
 *                                                 The Real-Time Kernel
 *
-*                                  (c) Copyright 2009-2014; Micrium, Inc.; Weston, FL
+*                                  (c) Copyright 2009-2013; Micrium, Inc.; Weston, FL
 *                           All rights reserved.  Protected by international copyright laws.
 *
 *                                               PEND ON MULTIPLE OBJECTS
 *
 * File    : OS_PEND_MULTI.C
 * By      : JJL
-* Version : V3.04.04
+* Version : V3.04.01
 *
 * LICENSING TERMS:
 * ---------------
@@ -26,9 +26,7 @@
 *           Please help us continue to provide the embedded community with the finest software available.
 *           Your honesty is greatly appreciated.
 *
-*           You can find our product's user manual, API reference, release notes and
-*           more information at https://doc.micrium.com.
-*           You can contact us at www.micrium.com.
+*           You can contact us at www.micrium.com, or by phone at +1 (954) 217-2036.
 ************************************************************************************************************************
 */
 
@@ -119,7 +117,7 @@ const  CPU_CHAR  *os_pend_multi__c = "$Id: $";
 *              == 0          if no events are returned as ready because of timeout or upon error.
 ************************************************************************************************************************
 */
-
+/*$PAGE*/
 OS_OBJ_QTY  OSPendMulti (OS_PEND_DATA  *p_pend_data_tbl,
                          OS_OBJ_QTY     tbl_size,
                          OS_TICK        timeout,
@@ -173,7 +171,7 @@ OS_OBJ_QTY  OSPendMulti (OS_PEND_DATA  *p_pend_data_tbl,
         return ((OS_OBJ_QTY)0);
     }
 
-
+/*$PAGE*/
     CPU_CRITICAL_ENTER();
     nbr_obj_rdy = OS_PendMultiGetRdy(p_pend_data_tbl,       /* --------- SEE IF OBJECT(s) HAVE BEEN POSTED ---------- */
                                      tbl_size);
@@ -234,7 +232,7 @@ OS_OBJ_QTY  OSPendMulti (OS_PEND_DATA  *p_pend_data_tbl,
     return ((OS_OBJ_QTY)1);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                              GET A LIST OF OBJECTS READY
@@ -314,7 +312,7 @@ OS_OBJ_QTY  OS_PendMultiGetRdy (OS_PEND_DATA  *p_pend_data_tbl,
     return (nbr_obj_rdy);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                 VERIFY THAT OBJECTS PENDED ON ARE EITHER SEMAPHORES or QUEUES
@@ -375,7 +373,7 @@ CPU_BOOLEAN  OS_PendMultiValidate (OS_PEND_DATA  *p_pend_data_tbl,
     return (DEF_TRUE);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                 MAKE TASK WAIT FOR ANY OF MULTIPLE EVENTS TO OCCUR

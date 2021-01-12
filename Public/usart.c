@@ -109,6 +109,7 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 		//获得接收帧帧长
 		USART1_Fram.AccessLen = TCP_MAX_LEN
 				- DMA_GetCurrDataCounter(DMA2_Stream2);
+		USART1_Fram.RxBuf[USART1_Fram.AccessLen] = '\0'; //添加结束符
 		//这里可以通知任务来处理数据
 #if SYSTEM_SUPPORT_OS
 		//推送接收完成

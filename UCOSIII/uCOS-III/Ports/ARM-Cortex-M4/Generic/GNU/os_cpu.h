@@ -10,7 +10,7 @@
 *                                           ARM Cortex-M4 Port
 *
 * File      : OS_CPU.H
-* Version   : V3.04.04
+* Version   : V3.03.02
 * By        : JJL
 *             JBL
 *
@@ -28,9 +28,7 @@
 *           Please help us continue to provide the embedded community with the finest software available.
 *           Your honesty is greatly appreciated.
 *
-*           You can find our product's user manual, API reference, release notes and
-*           more information at https://doc.micrium.com.
-*           You can contact us at www.micrium.com.
+*           You can contact us at www.micrium.com, or by phone at +1 (954) 217-2036.
 *
 * For       : ARMv7 Cortex-M4
 * Mode      : Thumb-2 ISA
@@ -72,9 +70,8 @@ extern  "C" {
 *********************************************************************************************************
 */
 
-#define  OS_TASK_SW()           OSCtxSw()
+#define  OS_TASK_SW()               OSCtxSw()
 
-#define  OS_TASK_SW_SYNC()      __asm__ __volatile__ ("isb" : : : "memory")
 
 /*
 *********************************************************************************************************

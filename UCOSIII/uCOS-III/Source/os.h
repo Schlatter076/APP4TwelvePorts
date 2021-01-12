@@ -3,12 +3,12 @@
 *                                                      uC/OS-III
 *                                                 The Real-Time Kernel
 *
-*                                  (c) Copyright 2009-2014; Micrium, Inc.; Weston, FL
+*                                  (c) Copyright 2009-2013; Micrium, Inc.; Weston, FL
 *                           All rights reserved.  Protected by international copyright laws.
 *
 * File    : OS.H
 * By      : JJL
-* Version : V3.04.04
+* Version : V3.04.01
 *
 * LICENSING TERMS:
 * ---------------
@@ -24,9 +24,7 @@
 *           Please help us continue to provide the embedded community with the finest software available.
 *           Your honesty is greatly appreciated.
 *
-*           You can find our product's user manual, API reference, release notes and
-*           more information at https://doc.micrium.com.
-*           You can contact us at www.micrium.com.
+*           You can contact us at www.micrium.com, or by phone at +1 (954) 217-2036.
 ************************************************************************************************************************
 * Note(s) : (1) Assumes the following versions (or more recent) of software modules are included in the project build:
 *
@@ -44,7 +42,7 @@
 ************************************************************************************************************************
 */
 
-#define  OS_VERSION  30404u                       /* Version of uC/OS-III (Vx.yy.zz mult. by 10000)                   */
+#define  OS_VERSION  30401u                       /* Version of uC/OS-III (Vx.yy.zz mult. by 10000)                   */
 
 /*
 ************************************************************************************************************************
@@ -55,7 +53,7 @@
 #include <os_cfg.h>
 #include <cpu_core.h>
 #include <lib_def.h>
-#include "os_type.h"
+#include <os_type.h>
 #include <os_cpu.h>
 #if     (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
 #include <trace_os.h>
@@ -166,7 +164,7 @@
 #define  OS_OBJ_TYPE_REQ           (((OS_CFG_DBG_EN > 0u) || (OS_CFG_OBJ_TYPE_CHK_EN > 0u) || (OS_CFG_PEND_MULTI_EN > 0u) \
                                    || (OS_CFG_ISR_POST_DEFERRED_EN > 0u)) ? 1u : 0u)
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 ************************************************************************************************************************
@@ -404,7 +402,7 @@
 #define  OS_TICK_TH_RDY                     (OS_TICK)(DEF_BIT_FIELD(((sizeof(OS_TICK) * DEF_OCTET_NBR_BITS) / 2u), \
                                                                     ((sizeof(OS_TICK) * DEF_OCTET_NBR_BITS) / 2u)))
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 ************************************************************************************************************************
@@ -627,6 +625,7 @@ typedef  enum  os_err {
 } OS_ERR;
 
 
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 ************************************************************************************************************************
@@ -681,7 +680,7 @@ typedef  void                      (*OS_APP_HOOK_VOID)(void);
 typedef  void                      (*OS_APP_HOOK_TCB)(OS_TCB *p_tcb);
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 ************************************************************************************************************************
@@ -809,7 +808,7 @@ struct  os_flag_grp {                                       /* Event Flag Group 
 #endif
 };
 
-
+/*$PAGE*/
 /*
 ------------------------------------------------------------------------------------------------------------------------
 *                                                   MEMORY PARTITIONS
@@ -838,7 +837,7 @@ struct os_mem {                                             /* MEMORY CONTROL BL
 #endif
 };
 
-
+/*$PAGE*/
 /*
 ------------------------------------------------------------------------------------------------------------------------
 *                                                       MESSAGES
@@ -879,7 +878,7 @@ struct  os_msg_q {                                          /* OS_MSG_Q         
 #endif
 };
 
-
+/*$PAGE*/
 /*
 ------------------------------------------------------------------------------------------------------------------------
 *                                              MUTUAL EXCLUSION SEMAPHORES
@@ -903,8 +902,8 @@ struct  os_mutex {                                          /* Mutual Exclusion 
     CPU_CHAR            *DbgNamePtr;
 #endif
                                                             /* ------------------ SPECIFIC MEMBERS ------------------ */
-    OS_MUTEX            *MutexGrpNextPtr;
     OS_TCB              *OwnerTCBPtr;
+    OS_PRIO              OwnerOriginalPrio;
     OS_NESTING_CTR       OwnerNestingCtr;                   /* Mutex is available when the counter is 0               */
     CPU_TS               TS;
 #if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
@@ -912,7 +911,7 @@ struct  os_mutex {                                          /* Mutual Exclusion 
 #endif
 };
 
-
+/*$PAGE*/
 /*
 ------------------------------------------------------------------------------------------------------------------------
 *                                                    MESSAGE QUEUES
@@ -942,7 +941,7 @@ struct  os_q {                                              /* Message Queue    
 #endif
 };
 
-
+/*$PAGE*/
 /*
 ------------------------------------------------------------------------------------------------------------------------
 *                                                      SEMAPHORES
@@ -973,7 +972,7 @@ struct  os_sem {                                            /* Semaphore        
 #endif
 };
 
-
+/*$PAGE*/
 /*
 ------------------------------------------------------------------------------------------------------------------------
 *                                                  TASK CONTROL BLOCK
@@ -1020,11 +1019,6 @@ struct os_tcb {
 
     OS_STATE             TaskState;                         /* See OS_TASK_STATE_xxx                                  */
     OS_PRIO              Prio;                              /* Task priority (0 == highest)                           */
-#if OS_CFG_MUTEX_EN > 0u
-    OS_PRIO              BasePrio;                          /* Base priority (Not inherited)                          */
-    OS_MUTEX            *MutexGrpHeadPtr;                   /* Owned mutex group head pointer                         */
-#endif
-
 #if ((OS_CFG_DBG_EN > 0u) || (OS_CFG_STAT_TASK_STK_CHK_EN > 0u))
     CPU_STK_SIZE         StkSize;                           /* Size of task stack (in number of stack elements)       */
 #endif
@@ -1040,7 +1034,7 @@ struct os_tcb {
 
                                                             /* DELAY / TIMEOUT                                        */
     OS_TICK              TickRemain;                        /* Number of ticks remaining (updated at by OS_TickTask() */
-    OS_TICK              TickCtrPrev;                       /* Used by OSTimeDlyXX() in PERIODIC mode                 */
+    OS_TICK              TickCtrPrev;                       /* Used by OSTimeDly??() in PERIODIC mode                 */
 
 #if OS_CFG_SCHED_ROUND_ROBIN_EN > 0u
     OS_TICK              TimeQuanta;
@@ -1109,7 +1103,7 @@ struct os_tcb {
 #endif
 };
 
-
+/*$PAGE*/
 /*
 ------------------------------------------------------------------------------------------------------------------------
 *                                                    TICK DATA TYPE
@@ -1154,6 +1148,7 @@ struct  os_tmr {
 };
 
 
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 ************************************************************************************************************************
@@ -1326,7 +1321,7 @@ OS_EXT            OS_CTR                    OSTmrUpdateCtr;
 OS_EXT            OS_TCB                   *OSTCBCurPtr;                /* Pointer to currently running TCB           */
 OS_EXT            OS_TCB                   *OSTCBHighRdyPtr;            /* Pointer to highest priority  TCB           */
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 ************************************************************************************************************************
@@ -1477,7 +1472,7 @@ void          OS_FlagTaskRdy            (OS_TCB                *p_tcb,
                                          CPU_TS                 ts);
 #endif
 
-
+/*$PAGE*/
 /* ================================================================================================================== */
 /*                                          FIXED SIZE MEMORY BLOCK MANAGEMENT                                        */
 /* ================================================================================================================== */
@@ -1508,7 +1503,7 @@ void          OS_MemInit                (OS_ERR                *p_err);
 
 #endif
 
-
+/*$PAGE*/
 /* ================================================================================================================== */
 /*                                             MUTUAL EXCLUSION SEMAPHORES                                            */
 /* ================================================================================================================== */
@@ -1555,19 +1550,9 @@ void          OS_MutexDbgListRemove     (OS_MUTEX              *p_mutex);
 void          OS_MutexInit              (OS_ERR                *p_err);
 #endif
 
-void          OS_MutexGrpAdd            (OS_TCB                *p_tcb,
-                                         OS_MUTEX              *p_mutex);
-
-void          OS_MutexGrpRemove         (OS_TCB                *p_tcb,
-                                         OS_MUTEX              *p_mutex);
-
-OS_PRIO       OS_MutexGrpPrioFindHighest(OS_TCB                *p_tcb);
-
-void          OS_MutexGrpPostAll        (OS_TCB                *p_tcb);
-
-
+/*$PAGE*/
 /* ================================================================================================================== */
-/*                                                    MULTI PEND                                                      */
+/*                                                   MESSAGE QUEUES                                                   */
 /* ================================================================================================================== */
 
 #if OS_CFG_PEND_MULTI_EN > 0u
@@ -1652,7 +1637,7 @@ void          OS_QPost                  (OS_Q                  *p_q,
                                          OS_ERR                *p_err);
 #endif
 
-
+/*$PAGE*/
 /* ================================================================================================================== */
 /*                                                     SEMAPHORES                                                     */
 /* ================================================================================================================== */
@@ -1664,11 +1649,9 @@ void          OSSemCreate               (OS_SEM                *p_sem,
                                          OS_SEM_CTR             cnt,
                                          OS_ERR                *p_err);
 
-#if OS_CFG_SEM_DEL_EN > 0u
 OS_OBJ_QTY    OSSemDel                  (OS_SEM                *p_sem,
                                          OS_OPT                 opt,
                                          OS_ERR                *p_err);
-#endif
 
 OS_SEM_CTR    OSSemPend                 (OS_SEM                *p_sem,
                                          OS_TICK                timeout,
@@ -1710,7 +1693,7 @@ OS_SEM_CTR    OS_SemPost                (OS_SEM                *p_sem,
                                          OS_ERR                *p_err);
 #endif
 
-
+/*$PAGE*/
 /* ================================================================================================================== */
 /*                                                 TASK MANAGEMENT                                                    */
 /* ================================================================================================================== */
@@ -1854,9 +1837,7 @@ void          OS_TaskSuspend            (OS_TCB                *p_tcb,
                                          OS_ERR                *p_err);
 #endif
 
-void          OS_TaskChangePrio(         OS_TCB                *p_tcb,
-                                         OS_PRIO                prio_new);
-
+/*$PAGE*/
 /* ================================================================================================================== */
 /*                                          TASK LOCAL STORAGE (TLS) SUPPORT                                          */
 /* ================================================================================================================== */
@@ -1886,7 +1867,7 @@ void       OS_TLS_TaskDel     (OS_TCB              *p_tcb);
 void       OS_TLS_TaskSw      (void);
 #endif
 
-
+/*$PAGE*/
 /* ================================================================================================================== */
 /*                                                 TIME MANAGEMENT                                                    */
 /* ================================================================================================================== */
@@ -1916,7 +1897,7 @@ void          OSTimeSet                 (OS_TICK                ticks,
 
 void          OSTimeTick                (void);
 
-
+/*$PAGE*/
 /* ================================================================================================================== */
 /*                                                 TIMER MANAGEMENT                                                   */
 /* ================================================================================================================== */
@@ -1971,7 +1952,7 @@ void          OS_TmrTask                (void                  *p_arg);
 
 #endif
 
-
+/*$PAGE*/
 /* ================================================================================================================== */
 /*                                                    MISCELLANEOUS                                                   */
 /* ================================================================================================================== */
@@ -2024,7 +2005,7 @@ void          OS_StatTaskInit           (OS_ERR                *p_err);
 void          OS_TickTask               (void                  *p_arg);
 void          OS_TickTaskInit           (OS_ERR                *p_err);
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 ************************************************************************************************************************
@@ -2063,7 +2044,7 @@ void          OSTimeTickHook            (void);
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 ************************************************************************************************************************
@@ -2215,7 +2196,8 @@ void          OS_PendListInsertHead     (OS_PEND_LIST          *p_pend_list,
 void          OS_PendListInsertPrio     (OS_PEND_LIST          *p_pend_list,
                                          OS_PEND_DATA          *p_pend_data);
 
-void          OS_PendListChangePrio     (OS_TCB                *p_tcb);
+void          OS_PendListChangePrio     (OS_TCB                *p_tcb,
+                                         OS_PRIO                prio_new);
 
 void          OS_PendListRemove         (OS_TCB                *p_tcb);
 
@@ -2237,7 +2219,7 @@ void          OS_TickListRemove         (OS_TCB                *p_tcb);
 
 void          OS_TickListResetPeak      (void);
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                          LOOK FOR MISSING #define CONSTANTS

@@ -3,14 +3,14 @@
 *                                                      uC/OS-III
 *                                                 The Real-Time Kernel
 *
-*                                  (c) Copyright 2009-2014; Micrium, Inc.; Weston, FL
+*                                  (c) Copyright 2009-2013; Micrium, Inc.; Weston, FL
 *                           All rights reserved.  Protected by international copyright laws.
 *
 *                                                    CORE FUNCTIONS
 *
 * File    : OS_CORE.C
 * By      : JJL
-* Version : V3.04.04
+* Version : V3.04.01
 *
 * LICENSING TERMS:
 * ---------------
@@ -26,9 +26,7 @@
 *           Please help us continue to provide the embedded community with the finest software available.
 *           Your honesty is greatly appreciated.
 *
-*           You can find our product's user manual, API reference, release notes and
-*           more information at https://doc.micrium.com.
-*           You can contact us at www.micrium.com.
+*           You can contact us at www.micrium.com, or by phone at +1 (954) 217-2036.
 ************************************************************************************************************************
 */
 
@@ -236,7 +234,7 @@ void  OSInit (OS_ERR  *p_err)
     OSCfg_Init();
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                      ENTER ISR
@@ -278,7 +276,7 @@ void  OSIntEnter (void)
     OSIntNestingCtr++;                                      /* Increment ISR nesting level                            */
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                       EXIT ISR
@@ -346,7 +344,7 @@ void  OSIntExit (void)
     CPU_INT_EN();
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                    INDICATE THAT IT'S NO LONGER SAFE TO CREATE OBJECTS
@@ -370,7 +368,7 @@ void  OSSafetyCriticalStart (void)
 
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                      SCHEDULER
@@ -420,13 +418,9 @@ void  OSSched (void)
 
     OS_TASK_SW();                                           /* Perform a task level context switch                    */
     CPU_INT_EN();
-
-#ifdef OS_TASK_SW_SYNC
-    OS_TASK_SW_SYNC();
-#endif
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                 PREVENT SCHEDULING
@@ -487,7 +481,7 @@ void  OSSchedLock (OS_ERR  *p_err)
    *p_err = OS_ERR_NONE;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                  ENABLE SCHEDULING
@@ -556,7 +550,7 @@ void  OSSchedUnlock (OS_ERR  *p_err)
    *p_err = OS_ERR_NONE;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                      CONFIGURE ROUND-ROBIN SCHEDULING PARAMETERS
@@ -608,7 +602,7 @@ void  OSSchedRoundRobinCfg (CPU_BOOLEAN   en,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                    YIELD CPU WHEN TASK NO LONGER NEEDS THE TIME SLICE
@@ -685,7 +679,7 @@ void  OSSchedRoundRobinYield (OS_ERR  *p_err)
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                 START MULTITASKING
@@ -732,7 +726,7 @@ void  OSStart (OS_ERR  *p_err)
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                    GET VERSION
@@ -762,7 +756,7 @@ CPU_INT16U  OSVersion (OS_ERR  *p_err)
     return (OS_VERSION);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                      IDLE TASK
@@ -805,7 +799,7 @@ void  OS_IdleTask (void  *p_arg)
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                               INITIALIZE THE IDLE TASK
@@ -846,7 +840,7 @@ void  OS_IdleTaskInit (OS_ERR  *p_err)
                  (OS_ERR     *)p_err);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                             BLOCK A TASK PENDING ON EVENT
@@ -910,7 +904,7 @@ void  OS_Pend (OS_PEND_DATA  *p_pend_data,
 #endif
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                     ABORT PENDING
@@ -981,9 +975,7 @@ void  OS_PendAbort (OS_PEND_OBJ  *p_obj,
              if (p_obj != (OS_PEND_OBJ *)0) {
                  OS_PendListRemove(p_tcb);                       /* Remove task from all pend lists                   */
              }
-             if (p_tcb->TaskState == OS_TASK_STATE_PEND_TIMEOUT_SUSPENDED) {
-                 OS_TickListRemove(p_tcb);                       /* Cancel the timeout                                */
-             }
+             OS_TickListRemove(p_tcb);                           /* Cancel the timeout                                */
              p_tcb->TaskState  = OS_TASK_STATE_SUSPENDED;        /* Pend Aborted task is still suspended              */
              p_tcb->PendStatus = OS_STATUS_PEND_ABORT;           /* Indicate pend was aborted                         */
              p_tcb->PendOn     = OS_TASK_PEND_ON_NOTHING;        /* Indicate no longer pending                        */
@@ -994,7 +986,7 @@ void  OS_PendAbort (OS_PEND_OBJ  *p_obj,
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                           PEND ABORT A TASK PENDING ON MULTIPLE OBJECTS
@@ -1065,7 +1057,7 @@ void  OS_PendAbort1 (OS_PEND_OBJ  *p_obj,
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                              INITIALIZE A WAIT LIST TABLE
@@ -1130,7 +1122,7 @@ void  OS_PendDataInit (OS_TCB        *p_tcb,
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                     ADD/REMOVE DEBUG NAMES TO PENDED OBJECT AND OS_TCB
@@ -1203,7 +1195,7 @@ void  OS_PendDbgNameRemove (OS_PEND_OBJ  *p_obj,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                               CHANGE THE PRIORITY OF A TASK WAITING IN ONE OR MORE PEND LISTS
@@ -1275,6 +1267,8 @@ void  OS_PendDbgNameRemove (OS_PEND_OBJ  *p_obj,
 * Arguments  : p_tcb       is a pointer to the TCB of the task to move
 *              -----
 *
+*              prio_new    is the new priority for the task
+*
 * Returns    : none
 *
 * Note(s)    : 1) This function is INTERNAL to uC/OS-III and your application MUST NOT call it.
@@ -1283,7 +1277,8 @@ void  OS_PendDbgNameRemove (OS_PEND_OBJ  *p_obj,
 ************************************************************************************************************************
 */
 
-void  OS_PendListChangePrio (OS_TCB   *p_tcb)
+void  OS_PendListChangePrio (OS_TCB   *p_tcb,
+                             OS_PRIO   prio_new)
 {
     OS_OBJ_QTY      n_pend_list;                                    /* Number of pend lists                           */
     OS_PEND_DATA   *p_pend_data;
@@ -1291,6 +1286,7 @@ void  OS_PendListChangePrio (OS_TCB   *p_tcb)
     OS_PEND_OBJ    *p_obj;
 
 
+    p_tcb->Prio = prio_new;
     p_pend_data = p_tcb->PendDataTblPtr;                            /* Point to first wait list entry                 */
     n_pend_list = p_tcb->PendDataTblEntries;                        /* Get the number of pend list task is in         */
 
@@ -1308,7 +1304,7 @@ void  OS_PendListChangePrio (OS_TCB   *p_tcb)
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                INITIALIZE A WAIT LIST
@@ -1331,7 +1327,7 @@ void  OS_PendListInit (OS_PEND_LIST  *p_pend_list)
     p_pend_list->NbrEntries = (OS_OBJ_QTY    )0;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                     INSERT PEND DATA AT THE BEGINNING OF A WAIT LIST
@@ -1398,7 +1394,7 @@ void  OS_PendListInsertHead (OS_PEND_LIST  *p_pend_list,
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                   INSERT PEND DATA BASED ON IT'S PRIORITY IN A LIST
@@ -1519,7 +1515,7 @@ void  OS_PendListInsertPrio (OS_PEND_LIST  *p_pend_list,
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                           REMOVE TASK FROM PEND LIST(s) KNOWING ONLY WHICH TCB TO REMOVE
@@ -1593,7 +1589,7 @@ void  OS_PendListRemove (OS_TCB  *p_tcb)
     p_tcb->PendDataTblPtr     = (OS_PEND_DATA *)0;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                               REMOVE AN 'OS_PEND_DATA' ENTRY from a 'OS_PEND_LIST'
@@ -1677,7 +1673,7 @@ void  OS_PendListRemove1 (OS_PEND_LIST  *p_pend_list,
     p_pend_data->PrevPtr = (OS_PEND_DATA *)0;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                READY A TASK THAT WAS PENDING ON AN OBJECT BEING DELETED
@@ -1744,9 +1740,7 @@ void  OS_PendObjDel (OS_PEND_OBJ  *p_obj,
 #endif
              p_tcb->TS         = ts;
              OS_PendListRemove(p_tcb);                           /* Remove task from all wait lists                   */
-             if (p_tcb->TaskState == OS_TASK_STATE_PEND_TIMEOUT_SUSPENDED) {
-                 OS_TickListRemove(p_tcb);                       /* Cancel the timeout                                */
-             }
+             OS_TickListRemove(p_tcb);                           /* Cancel the timeout                                */
              p_tcb->TaskState  = OS_TASK_STATE_SUSPENDED;        /* Task needs to remain suspended                    */
              p_tcb->PendStatus = OS_STATUS_PEND_DEL;             
              p_tcb->PendOn     = OS_TASK_PEND_ON_NOTHING;        /* Indicate no longer pending                        */
@@ -1757,7 +1751,7 @@ void  OS_PendObjDel (OS_PEND_OBJ  *p_obj,
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                    DELETE AN OBJECT FROM A TASK PENDING ON MULTIPLE OBJECTS
@@ -1828,7 +1822,7 @@ void  OS_PendObjDel1 (OS_PEND_OBJ  *p_obj,
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                   POST TO A TASK
@@ -1933,7 +1927,7 @@ void  OS_Post (OS_PEND_OBJ  *p_obj,
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                           POST TO A TASK PENDING ON MULTIPLE OBJECTS
@@ -2012,7 +2006,7 @@ void  OS_Post1 (OS_PEND_OBJ  *p_obj,
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                    INITIALIZATION
@@ -2070,7 +2064,7 @@ void  OS_RdyListInit (void)
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                             INSERT TCB IN THE READY LIST
@@ -2184,7 +2178,7 @@ void  OS_RdyListInsertHead (OS_TCB  *p_tcb)
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                           INSERT TCB AT THE END OF A LIST
@@ -2265,7 +2259,7 @@ void  OS_RdyListInsertTail (OS_TCB  *p_tcb)
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                MOVE TCB AT HEAD TO TAIL
@@ -2356,7 +2350,7 @@ void  OS_RdyListMoveHeadToTail (OS_RDY_LIST  *p_rdy_list)
     }
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                REMOVE TCB FROM LIST KNOWING ONLY WHICH OS_TCB TO REMOVE
@@ -2444,7 +2438,7 @@ void  OS_RdyListRemove (OS_TCB  *p_tcb)
 #endif
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                             SCHEDULE THE ISR HANDLER TASK
@@ -2479,7 +2473,7 @@ void  OS_Sched0 (void)
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                               SCHEDULER LOCK TIME MEASUREMENT
@@ -2530,7 +2524,7 @@ void  OS_SchedLockTimeMeasStop (void)
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                        RUN ROUND-ROBIN SCHEDULING ALGORITHM
@@ -2602,7 +2596,7 @@ void  OS_SchedRoundRobin (OS_RDY_LIST  *p_rdy_list)
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                     BLOCK A TASK

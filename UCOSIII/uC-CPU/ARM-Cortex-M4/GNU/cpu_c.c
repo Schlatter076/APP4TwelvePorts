@@ -15,8 +15,6 @@
 *               Please help us continue to provide the Embedded community with the finest 
 *               software available.  Your honesty is greatly appreciated.
 *
-*               You can find our product's user manual, API reference, release notes and
-*               more information at https://doc.micrium.com.
 *               You can contact us at www.micrium.com.
 *********************************************************************************************************
 */
@@ -30,7 +28,7 @@
 *                                            GNU C Compiler
 *
 * Filename      : cpu_c.c
-* Version       : V1.30.01.00
+* Version       : V1.29.02.00
 * Programmer(s) : JJL
 *                 BAN
 *********************************************************************************************************
@@ -48,10 +46,6 @@
 #include  <cpu_core.h>
 
 #include  <lib_def.h>
-
-#ifdef __cplusplus
-extern  "C" {
-#endif
 
 
 /*
@@ -690,7 +684,6 @@ CPU_INT16S  CPU_IntSrcPrioGet (CPU_INT08U  pos)
              CPU_CRITICAL_ENTER();
              temp = CPU_REG_NVIC_SHPRI1;
              prio = (temp >> (2 * DEF_OCTET_NBR_BITS)) & DEF_OCTET_MASK;
-             CPU_CRITICAL_EXIT();
              break;
 
         case CPU_INT_SVCALL:                                    /* SVCall.                                              */
@@ -742,8 +735,4 @@ CPU_INT16S  CPU_IntSrcPrioGet (CPU_INT08U  pos)
 
     return (prio);
 }
-
-#ifdef __cplusplus
-}
-#endif
 

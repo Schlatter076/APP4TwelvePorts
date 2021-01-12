@@ -3,14 +3,14 @@
 *                                                      uC/OS-III
 *                                                 The Real-Time Kernel
 *
-*                                  (c) Copyright 2009-2014; Micrium, Inc.; Weston, FL
+*                                  (c) Copyright 2009-2013; Micrium, Inc.; Weston, FL
 *                           All rights reserved.  Protected by international copyright laws.
 *
 *                                                   TICK MANAGEMENT
 *
 * File    : OS_TICK.C
 * By      : JJL
-* Version : V3.04.04
+* Version : V3.04.01
 *
 * LICENSING TERMS:
 * ---------------
@@ -26,9 +26,7 @@
 *           Please help us continue to provide the embedded community with the finest software available.
 *           Your honesty is greatly appreciated.
 *
-*           You can find our product's user manual, API reference, release notes and
-*           more information at https://doc.micrium.com.
-*           You can contact us at www.micrium.com.
+*           You can contact us at www.micrium.com, or by phone at +1 (954) 217-2036.
 ************************************************************************************************************************
 */
 
@@ -65,31 +63,39 @@ static  CPU_TS  OS_TickListUpdateTimeout (void);
 void  OS_TickTask (void  *p_arg)
 {
     OS_ERR  err;
+    CPU_TS  ts;
     CPU_TS  ts_delta;
     CPU_TS  ts_delta_dly;
     CPU_TS  ts_delta_timeout;
     CPU_SR_ALLOC();
 
+                                                              
+                                                                        
+                                                                        
+    
 
-    (void)&p_arg;                                               /* Prevent compiler warning                             */
+
+    (void)&p_arg;                                                       /* Prevent compiler warning                          */
 
     while (DEF_ON) {
         (void)OSTaskSemPend((OS_TICK  )0,
                             (OS_OPT   )OS_OPT_PEND_BLOCKING,
-                            (CPU_TS  *)0,
-                            (OS_ERR  *)&err);                   /* Wait for signal from tick interrupt                  */
+                            (CPU_TS  *)&ts,
+                            (OS_ERR  *)&err);                           /* Wait for signal from tick interrupt               */
         if (err == OS_ERR_NONE) {
-            OS_CRITICAL_ENTER();
-            OSTickCtr++;                                        /* Keep track of the number of ticks                    */
+            if (OSRunning == OS_STATE_OS_RUNNING) {
+                OS_CRITICAL_ENTER();
+                OSTickCtr++;                                            /* Keep track of the number of ticks                 */
 #if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
-            TRACE_OS_TICK_INCREMENT(OSTickCtr);                 /* Record the event.                                    */
+                TRACE_OS_TICK_INCREMENT(OSTickCtr);                     /* Record the event.                                 */
 #endif
-            OS_CRITICAL_EXIT();
-            ts_delta_dly     = OS_TickListUpdateDly();
-            ts_delta_timeout = OS_TickListUpdateTimeout();
-            ts_delta         = ts_delta_dly + ts_delta_timeout; /* Compute total execution time of list updates         */
-            if (OSTickTaskTimeMax < ts_delta) {
-                OSTickTaskTimeMax = ts_delta;
+                OS_CRITICAL_EXIT();
+                ts_delta_dly     = OS_TickListUpdateDly();
+                ts_delta_timeout = OS_TickListUpdateTimeout();
+                ts_delta         = ts_delta_dly + ts_delta_timeout;     /* Compute total execution time of list updates      */
+                if (OSTickTaskTimeMax < ts_delta) {
+                    OSTickTaskTimeMax = ts_delta;
+                }
             }
         }
     }
@@ -516,10 +522,6 @@ static  CPU_TS  OS_TickListUpdateTimeout (void)
 #if OS_CFG_DBG_EN > 0u
     OS_OBJ_QTY    nbr_updated;
 #endif
-#if OS_CFG_MUTEX_EN > 0u
-    OS_TCB       *p_tcb_owner;
-    OS_PRIO       prio_new;
-#endif
     CPU_SR_ALLOC();
 
                                                               
@@ -537,46 +539,28 @@ static  CPU_TS  OS_TickListUpdateTimeout (void)
 #if OS_CFG_DBG_EN > 0u
             nbr_updated++;
 #endif
-
-#if OS_CFG_MUTEX_EN > 0u
-            p_tcb_owner = (OS_TCB *)0;
-            if (p_tcb->PendOn == OS_TASK_PEND_ON_MUTEX) {
-                p_tcb_owner = ((OS_MUTEX *)p_tcb->PendDataTblPtr->PendObjPtr)->OwnerTCBPtr;
-            }
-#endif
-
-#if (OS_MSG_EN > 0u)
-            p_tcb->MsgPtr  = (void      *)0;
-            p_tcb->MsgSize = (OS_MSG_SIZE)0u;
-#endif
-            p_tcb->TS      = OS_TS_GET();
-            OS_PendListRemove(p_tcb);                                   /* Remove from wait list                             */
             if (p_tcb->TaskState == OS_TASK_STATE_PEND_TIMEOUT) {
+#if (OS_MSG_EN > 0u)
+                p_tcb->MsgPtr     = (void      *)0;
+                p_tcb->MsgSize    = (OS_MSG_SIZE)0u;
+#endif
+                p_tcb->TS         = OS_TS_GET();
+                OS_PendListRemove(p_tcb);                               /* Remove from wait list                             */
                 OS_RdyListInsert(p_tcb);                                /* Insert the task in the ready list                 */
                 p_tcb->TaskState  = OS_TASK_STATE_RDY;
+                p_tcb->PendStatus = OS_STATUS_PEND_TIMEOUT;             /* Indicate pend timed out                           */
+                p_tcb->PendOn     = OS_TASK_PEND_ON_NOTHING;            /* Indicate no longer pending                        */
             } else if (p_tcb->TaskState == OS_TASK_STATE_PEND_TIMEOUT_SUSPENDED) {
-
-                p_tcb->TaskState  = OS_TASK_STATE_SUSPENDED;
-            }
-            p_tcb->PendStatus = OS_STATUS_PEND_TIMEOUT;                 /* Indicate pend timed out                           */
-            p_tcb->PendOn     = OS_TASK_PEND_ON_NOTHING;                /* Indicate no longer pending                        */
-
-#if OS_CFG_MUTEX_EN > 0u
-            if(p_tcb_owner != (OS_TCB *)0) {
-                if ((p_tcb_owner->Prio != p_tcb_owner->BasePrio) &&
-                    (p_tcb_owner->Prio == p_tcb->Prio)) {               /* Has the owner inherited a priority?               */
-                    prio_new = OS_MutexGrpPrioFindHighest(p_tcb_owner);
-                    prio_new = prio_new > p_tcb_owner->BasePrio ? p_tcb_owner->BasePrio : prio_new;
-                    if(prio_new != p_tcb_owner->Prio) {
-                        OS_TaskChangePrio(p_tcb_owner, prio_new);
-            #if (defined(TRACE_CFG_EN) && (TRACE_CFG_EN > 0u))
-                                      TRACE_OS_MUTEX_TASK_PRIO_DISINHERIT(p_tcb_owner, p_tcb_owner->Prio)
-            #endif
-                    }
-                }
-            }
+#if (OS_MSG_EN > 0u)
+                p_tcb->MsgPtr     = (void      *)0;
+                p_tcb->MsgSize    = (OS_MSG_SIZE)0u;
 #endif
-
+                p_tcb->TS         = OS_TS_GET();
+                OS_PendListRemove(p_tcb);                               /* Remove from wait list                             */
+                p_tcb->TaskState  = OS_TASK_STATE_SUSPENDED;
+                p_tcb->PendStatus = OS_STATUS_PEND_TIMEOUT;             /* Indicate pend timed out                           */
+                p_tcb->PendOn     = OS_TASK_PEND_ON_NOTHING;            /* Indicate no longer pending                        */
+            }
             p_list->TCB_Ptr = p_tcb->TickNextPtr;
             p_tcb           = p_list->TCB_Ptr;                          /* Get 'p_tcb' again for loop                        */
             if (p_tcb == (OS_TCB *)0) {

@@ -24,7 +24,6 @@ int main(void)
 	F4G_Init(115200);
 	WIFI_Init(115200);
 
-
 #if SYSTEM_SUPPORT_OS
 	OS_ERR err;
 	CPU_SR_ALLOC();

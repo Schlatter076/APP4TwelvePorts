@@ -3,7 +3,7 @@
 *                                                uC/CPU
 *                                    CPU CONFIGURATION & PORT LAYER
 *
-*                          (c) Copyright 2004-2013; Micrium, Inc.; Weston, FL
+*                          (c) Copyright 2004-2010; Micrium, Inc.; Weston, FL
 *
 *               All rights reserved.  Protected by international copyright laws.
 *
@@ -15,8 +15,6 @@
 *               Please help us continue to provide the Embedded community with the finest 
 *               software available.  Your honesty is greatly appreciated.
 *
-*               You can find our product's user manual, API reference, release notes and
-*               more information at https://doc.micrium.com.
 *               You can contact us at www.micrium.com.
 *********************************************************************************************************
 */
@@ -29,10 +27,9 @@
 *                                              TEMPLATE
 *
 * Filename      : cpu_cfg.h
-* Version       : V1.30.00
+* Version       : V1.28
 * Programmer(s) : SR
 *                 ITJ
-*                 JBL
 *********************************************************************************************************
 */
 
@@ -72,6 +69,7 @@
 #define  CPU_CFG_NAME_SIZE                                16    /* ... (see Note #2).                                   */
 
 
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                     CPU TIMESTAMP CONFIGURATION
@@ -124,86 +122,47 @@
 *               (b) Configure CPU_CFG_INT_DIS_MEAS_OVRHD_NBR with the number of times to measure & 
 *                   average the interrupts disabled time measurements overhead.
 *
+*                   Recommend a single (1) overhead time measurement, even for instruction-cache-enabled 
+*                   CPUs, since critical sections are NOT typically called within instruction-cached loops.
+*                   Thus, a single non-cached/non-averaged time measurement is a more realistic overhead 
+*                   for the majority of non-cached interrupts disabled time measurements.
+*
 *                   See also 'cpu_core.c  CPU_IntDisMeasInit()  Note #3a'.
 *********************************************************************************************************
 */
-#if 1                                                           /* Configure CPU interrupts disabled time ...           */
+
+#if 0                                                           /* Configure CPU interrupts disabled time ...           */
 #define  CPU_CFG_INT_DIS_MEAS_EN                                /* ... measurements feature (see Note #1a).             */
 #endif
 
                                                                 /* Configure number of interrupts disabled overhead ... */
-#define  CPU_CFG_INT_DIS_MEAS_OVRHD_NBR                    1u   /* ... time measurements (see Note #1b).                */
+#define  CPU_CFG_INT_DIS_MEAS_OVRHD_NBR                    1    /* ... time measurements (see Note #1b).                */
 
 
+/*$PAGE*/
 /*
 *********************************************************************************************************
-*                                    CPU COUNT ZEROS CONFIGURATION
+*                                CPU COUNT LEADING ZEROS CONFIGURATION
 *
-* Note(s) : (1) (a) Configure CPU_CFG_LEAD_ZEROS_ASM_PRESENT  to define count leading  zeros bits 
-*                   function(s) in :
+* Note(s) : (1) Configure CPU_CFG_LEAD_ZEROS_ASM_PRESENT to prototype/define count leading zeros bits 
+*               function(s) in :
 *
-*                   (1) 'cpu_a.asm',  if CPU_CFG_LEAD_ZEROS_ASM_PRESENT       #define'd in 'cpu.h'/
-*                                         'cpu_cfg.h' to enable assembly-optimized function(s)
+*               (a) 'cpu.h'/'cpu_a.asm',       if CPU_CFG_LEAD_ZEROS_ASM_PRESENT      #define'd in 'cpu.h'/
+*                                                 'cpu_cfg.h' to enable assembly-version function
 *
-*                   (2) 'cpu_core.c', if CPU_CFG_LEAD_ZEROS_ASM_PRESENT   NOT #define'd in 'cpu.h'/
-*                                         'cpu_cfg.h' to enable C-source-optimized function(s) otherwise
+*               (b) 'cpu_core.h'/'cpu_core.c', if CPU_CFG_LEAD_ZEROS_ASM_PRESENT  NOT #define'd in 'cpu.h'/
+*                                                 'cpu_cfg.h' to enable C-source-version function otherwise
 *
-*               (b) Configure CPU_CFG_TRAIL_ZEROS_ASM_PRESENT to define count trailing zeros bits 
-*                   function(s) in :
-*
-*                   (1) 'cpu_a.asm',  if CPU_CFG_TRAIL_ZEROS_ASM_PRESENT      #define'd in 'cpu.h'/
-*                                         'cpu_cfg.h' to enable assembly-optimized function(s)
-*
-*                   (2) 'cpu_core.c', if CPU_CFG_TRAIL_ZEROS_ASM_PRESENT  NOT #define'd in 'cpu.h'/
-*                                         'cpu_cfg.h' to enable C-source-optimized function(s) otherwise
+*               See also 'cpu_core.h  FUNCTION PROTOTYPES  Note #2'.
 *********************************************************************************************************
 */
 
-#if 1                                                           /* Configure CPU count leading  zeros bits ...          */
-#define  CPU_CFG_LEAD_ZEROS_ASM_PRESENT                         /* ... assembly-version (see Note #1a).                 */
-#endif
-
-#if 0                                                           /* Configure CPU count trailing zeros bits ...          */
-#define  CPU_CFG_TRAIL_ZEROS_ASM_PRESENT                        /* ... assembly-version (see Note #1b).                 */
+#if 1                                                           /* Configure CPU count leading zeros bits ...           */
+#define  CPU_CFG_LEAD_ZEROS_ASM_PRESENT                         /* ... assembly-version (see Note #1).                  */
 #endif
 
 
-/*
-*********************************************************************************************************
-*                                      CPU ENDIAN TYPE OVERRIDE
-*
-* Note(s) : (1) Configure CPU_CFG_ENDIAN_TYPE to override the default CPU endian type defined in cpu.h.
-*
-*               (a) CPU_ENDIAN_TYPE_BIG         Big-   endian word order (CPU words' most  significant
-*                                                                         octet @ lowest memory address)
-*               (b) CPU_ENDIAN_TYPE_LITTLE      Little-endian word order (CPU words' least significant
-*                                                                         octet @ lowest memory address)
-*
-*           (2) Defining CPU_CFG_ENDIAN_TYPE here is only valid for supported bi-endian architectures.
-*               See  'cpu.h  CPU WORD CONFIGURATION  Note #3' for details
-*********************************************************************************************************
-*/
-
-#if 0
-#define  CPU_CFG_ENDIAN_TYPE            CPU_ENDIAN_TYPE_BIG     /* Defines CPU data    word-memory order (see Note #2). */
-#endif
-
-
-/*
-*********************************************************************************************************
-*                                          CACHE MANAGEMENT
-*
-* Note(s) : (1) Configure CPU_CFG_CACHE_MGMT_EN to enable the cache managment API.
-
-*
-*           (2) Defining CPU_CFG_CACHE_MGMT_EN to DEF_ENABLED only enable the cache management function.
-*               Cache are assumed to be configured and enabled by the time CPU_init() is called.
-*********************************************************************************************************
-*/
-
-#define  CPU_CFG_CACHE_MGMT_EN            DEF_DISABLED          /* Defines CPU data    word-memory order (see Note #1). */
-
-
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                             MODULE END

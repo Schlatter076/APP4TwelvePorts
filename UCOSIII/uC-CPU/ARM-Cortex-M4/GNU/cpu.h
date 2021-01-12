@@ -15,8 +15,6 @@
 *               Please help us continue to provide the Embedded community with the finest 
 *               software available.  Your honesty is greatly appreciated.
 *
-*               You can find our product's user manual, API reference, release notes and
-*               more information at https://doc.micrium.com.
 *               You can contact us at www.micrium.com.
 *********************************************************************************************************
 */
@@ -30,7 +28,7 @@
 *                                            GNU C Compiler
 *
 * Filename      : cpu.h
-* Version       : V1.30.01.00
+* Version       : V1.29.02.00
 * Programmer(s) : JJL
 *                 BAN
 *********************************************************************************************************
@@ -85,10 +83,6 @@
 
 #include  <cpu_def.h>
 #include  <cpu_cfg.h>                                           /* See Note #3.                                         */
-
-#ifdef __cplusplus
-extern  "C" {
-#endif
 
 
 /*
@@ -736,10 +730,6 @@ void        CPU_BitBandSet   (CPU_ADDR    addr,
 * Note(s) : (1) See 'cpu.h  MODULE'.
 *********************************************************************************************************
 */
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif                                                          /* End of CPU module include.                           */
 

@@ -15,8 +15,6 @@
 *               Please help us continue to provide the Embedded community with the finest 
 *               software available.  Your honesty is greatly appreciated.
 *
-*               You can find our product's user manual, API reference, release notes and
-*               more information at https://doc.micrium.com.
 *               You can contact us at www.micrium.com.
 *********************************************************************************************************
 */
@@ -27,7 +25,7 @@
 *                                           CORE CPU MODULE
 *
 * Filename      : cpu_core.h
-* Version       : V1.30.01
+* Version       : V1.29.02
 * Programmer(s) : SR
 *                 ITJ
 *********************************************************************************************************

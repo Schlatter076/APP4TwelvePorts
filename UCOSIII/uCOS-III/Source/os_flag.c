@@ -3,14 +3,14 @@
 *                                                      uC/OS-III
 *                                                 The Real-Time Kernel
 *
-*                                  (c) Copyright 2009-2014; Micrium, Inc.; Weston, FL
+*                                  (c) Copyright 2009-2013; Micrium, Inc.; Weston, FL
 *                           All rights reserved.  Protected by international copyright laws.
 *
 *                                                EVENT FLAG MANAGEMENT
 *
 * File    : OS_FLAG.C
 * By      : JJL
-* Version : V3.04.04
+* Version : V3.04.01
 *
 * LICENSING TERMS:
 * ---------------
@@ -26,9 +26,7 @@
 *           Please help us continue to provide the embedded community with the finest software available.
 *           Your honesty is greatly appreciated.
 *
-*           You can find our product's user manual, API reference, release notes and
-*           more information at https://doc.micrium.com.
-*           You can contact us at www.micrium.com.
+*           You can contact us at www.micrium.com, or by phone at +1 (954) 217-2036.
 ************************************************************************************************************************
 */
 
@@ -42,6 +40,7 @@ const  CPU_CHAR  *os_flag__c = "$Id: $";
 
 #if OS_CFG_FLAG_EN > 0u
 
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                 CREATE AN EVENT FLAG
@@ -131,7 +130,7 @@ void  OSFlagCreate (OS_FLAG_GRP  *p_grp,
    *p_err = OS_ERR_NONE;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                             DELETE AN EVENT FLAG GROUP
@@ -684,7 +683,7 @@ OS_FLAGS  OSFlagPend (OS_FLAG_GRP  *p_grp,
     return (flags_rdy);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                          ABORT WAITING ON AN EVENT FLAG GROUP
@@ -802,7 +801,7 @@ OS_OBJ_QTY  OSFlagPendAbort (OS_FLAG_GRP  *p_grp,
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                       GET FLAGS WHO CAUSED TASK TO BECOME READY
@@ -847,7 +846,7 @@ OS_FLAGS  OSFlagPendGetFlagsRdy (OS_ERR  *p_err)
     return (flags);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                POST EVENT FLAG BIT(S)
@@ -974,7 +973,7 @@ OS_FLAGS  OSFlagPost (OS_FLAG_GRP  *p_grp,
     return (flags_cur);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                         SUSPEND TASK UNTIL EVENT FLAG(s) RECEIVED OR TIMEOUT OCCURS
@@ -1027,7 +1026,7 @@ void  OS_FlagBlock (OS_PEND_DATA  *p_pend_data,
              timeout);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                      CLEAR THE CONTENTS OF AN EVENT FLAG GROUP
@@ -1060,7 +1059,7 @@ void  OS_FlagClr (OS_FLAG_GRP  *p_grp)
     OS_PendListInit(p_pend_list);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                          INITIALIZE THE EVENT FLAG MODULE
@@ -1095,7 +1094,7 @@ void  OS_FlagInit (OS_ERR  *p_err)
    *p_err            = OS_ERR_NONE;
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                    ADD/REMOVE EVENT FLAG GROUP TO/FROM DEBUG LIST
@@ -1156,7 +1155,7 @@ void  OS_FlagDbgListRemove (OS_FLAG_GRP  *p_grp)
 }
 #endif
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                POST EVENT FLAG BIT(S)
@@ -1311,7 +1310,7 @@ OS_FLAGS  OS_FlagPost (OS_FLAG_GRP  *p_grp,
     return (flags_cur);
 }
 
-
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                        MAKE TASK READY-TO-RUN, EVENT(s) OCCURRED

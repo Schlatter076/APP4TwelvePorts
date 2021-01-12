@@ -417,13 +417,13 @@ void setBATInstruction(u8 port, u8 sta)
  */
 u8 checkPowerbankStatus(u8 i)
 {
-	u8 pbStatu = 0;
-	u8 motorStatu = 0;
-	u8 communicationStatu = 0;
-	u8 index = 0;
+	vu8 pbStatu = 0;
+	vu8 motorStatu = 0;
+	vu8 communicationStatu = 0;
+	vu8 index = 0;
 	u8 pbERROR = 0;
 	u16 len = 0;
-	u8 portSTA = 0;
+	vu8 portSTA = 0;
 	OS_ERR err;
 	len = fillDataToTxBuf(BAT_Down_Admin, 0, NULL);
 	pbStatu = getBatSwitchSTA(i + 1);
