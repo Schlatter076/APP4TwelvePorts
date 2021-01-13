@@ -173,6 +173,8 @@ void Module4G_Send(const char *data)
 	char *p_str;
 	char *buf = mymalloc(20);
 	p_str = mymalloc(BASE64_BUF_LEN);
+	memset(buf, '\0', 20);
+	memset(p_str, '\0', BASE64_BUF_LEN);
 	base64_encode((const unsigned char *)data, p_str);
 	snprintf(buf, 20, "AT+CIPSEND=%d", strlen((const char *) p_str) + 3);
 	if (Send_AT_Cmd(In4G, buf, ">", NULL, 200, 2, DISABLE))
@@ -227,11 +229,6 @@ void USART3_IRQHandler(void)
 	{
 		USART3->SR; //先读SR，再读DR
 		USART3->DR;
-
-		if(strstr((const char *)F4G_Fram.RxBuf, "CLOSED"))
-		{
-			F4G_Fram.Online = 0;  //模块连接已断
-		}
 
 		//关闭DMA
 		DMA_Cmd(DMA1_Stream1, DISABLE);

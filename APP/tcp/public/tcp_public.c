@@ -239,9 +239,9 @@ bool AT_Test(ENUM_Internet_TypeDef internet)
 	}
 	while (count++ < 8)
 	{
-		Send_AT_Cmd(internet, "AT", "OK", NULL, 100, 2, ENABLE);
+		Send_AT_Cmd(internet, "AT", "OK", NULL, 100, 2, DISABLE);
 	}
-	if (Send_AT_Cmd(internet, "AT", "OK", NULL, 100, 2, ENABLE))
+	if (Send_AT_Cmd(internet, "AT", "OK", NULL, 100, 2, DISABLE))
 	{
 		DEBUG("test %s success!\r\n", module);
 		myfree(module);
@@ -455,6 +455,8 @@ void ProcessServerCmd(ENUM_Internet_TypeDef internet,
 		MyFlash_Write(&MyFlashParams);
 		NVIC_SystemReset();
 		break;
+	case DOWN_RemoteCtrMotor:
+		setMotorRun(SData);
 	default:
 		DEBUG("cmd\"%d\" is not support\r\n", DownCMD);
 		break;
@@ -708,4 +710,19 @@ void getRegisterParams(ENUM_Internet_TypeDef internet, char *data)
 		WIFI_Fram.allowHeart = 1;
 		WIFI_Fram.firstStatuHeartNotSucc = 1;
 	}
+}
+/**
+ * 远程控制电机转动
+ */
+void setMotorRun(char *data)
+{
+	char *ptr = NULL;
+	u16 kk, gtime, ktime;
+	ptr = strtok(data, "-");
+	kk = atoi(ptr);
+	ptr = strtok(NULL, "-");
+	gtime = atoi(ptr);
+	ptr = strtok(NULL, "-");
+	ktime = atoi(ptr);
+	remoteCtrMotot(kk, gtime, ktime);
 }

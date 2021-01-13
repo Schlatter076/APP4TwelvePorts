@@ -94,24 +94,24 @@ static void STMFLASH_Read(u32 ReadAddr, u32 *pBuffer, u32 NumToRead)
 void STMFlash_Init(void)
 {
 	//===================本地调试时使用===============================================
-	strcpy((char *) MyFlashParams.DeviceID, "PM610001");
-	strcpy((char *) MyFlashParams.Version, "tweleve1229");
-	strcpy((char *) MyFlashParams.ServerParams,
-			"aaaaaaaaaaaaaaaa-server.dayitc.com:13401-1-5-2");
-	strcpy((char *)MyFlashParams.WifiSSID, "HHS_1C1C");
-	strcpy((char *)MyFlashParams.WifiPWD, "hhs123456");
-	memset(MyFlashParams.IgnoreLock, 0, 12);
-	MyFlashParams.WifiFlag = WIFI_FLAG;
+//	strcpy((char *) MyFlashParams.DeviceID, "PM610001");
+//	strcpy((char *) MyFlashParams.Version, "tweleve1229");
+//	strcpy((char *) MyFlashParams.ServerParams,
+//			"aaaaaaaaaaaaaaaa-server.dayitc.com:13401-1-5-2");
+//	strcpy((char *)MyFlashParams.WifiSSID, "HHS_1C1C");
+//	strcpy((char *)MyFlashParams.WifiPWD, "hhs123456");
+//	memset(MyFlashParams.IgnoreLock, 0, 12);
+//	MyFlashParams.WifiFlag = WIFI_FLAG;
 	//===================本地调试时使用===============================================
 
 	//填充参数
-//	STMFLASH_Read(DEVICE_ID_ADDR, (u32 *) &MyFlashParams.DeviceID[0], 2);
-//	STMFLASH_Read(VERSION_ADDR, (u32 *) &MyFlashParams.Version[0], 5);
-//	STMFLASH_Read(IGNORE_LOCK_ADDR, (u32 *) &MyFlashParams.IgnoreLock[0], 3);
-//	STMFLASH_Read(APP_SERVER_ADDR, (u32 *) &MyFlashParams.ServerParams[0], 25);
-//	STMFLASH_Read(WIFI_SSID_ADDR, (u32 *) &MyFlashParams.WifiSSID[0], 25);
-//	STMFLASH_Read(WIFI_PWD_ADDR, (u32 *) &MyFlashParams.WifiPWD[0], 2);
-//	STMFLASH_Read(WIFI_FLAG_ADDR, (u32 *) &MyFlashParams.WifiFlag, 1);
+	STMFLASH_Read(DEVICE_ID_ADDR, (u32 *) &MyFlashParams.DeviceID[0], 2);
+	STMFLASH_Read(VERSION_ADDR, (u32 *) &MyFlashParams.Version[0], 5);
+	STMFLASH_Read(IGNORE_LOCK_ADDR, (u32 *) &MyFlashParams.IgnoreLock[0], 3);
+	STMFLASH_Read(APP_SERVER_ADDR, (u32 *) &MyFlashParams.ServerParams[0], 25);
+	STMFLASH_Read(WIFI_SSID_ADDR, (u32 *) &MyFlashParams.WifiSSID[0], 25);
+	STMFLASH_Read(WIFI_PWD_ADDR, (u32 *) &MyFlashParams.WifiPWD[0], 25);
+	STMFLASH_Read(WIFI_FLAG_ADDR, (u32 *) &MyFlashParams.WifiFlag, 1);
 	MyFlashParams.IAPFlag = IAP_INIT_FLAG_DATA;
 	//添加结束符
 	MyFlashParams.DeviceID[8] = '\0';

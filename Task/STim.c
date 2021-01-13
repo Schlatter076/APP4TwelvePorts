@@ -32,7 +32,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	//未上线
 	if (F4G_Fram.Online == 0 && WIFI_Fram.Online == 0)
 	{
-		if (initCnt++ == 50)
+		if (initCnt++ == 5)
 		{
 			initCnt = 0;
 			BACK_LIGHT_STA ^= 1;
@@ -84,7 +84,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.fastBLINK[0])
 	{
 		HC595_STATUS.fastCnt[0]++;
-		if (HC595_STATUS.fastCnt[0] == 20)
+		if (HC595_STATUS.fastCnt[0] == 2)
 		{
 			HC595_STATUS.fastCnt[0] = 0;
 			ledBLINK(1);
@@ -94,7 +94,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.slowBLINK[0])
 	{
 		HC595_STATUS.slowCnt[0]++;
-		if (HC595_STATUS.slowCnt[0] == 80)
+		if (HC595_STATUS.slowCnt[0] == 8)
 		{
 			HC595_STATUS.slowCnt[0] = 0;
 			ledBLINK(1);
@@ -104,7 +104,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.fastBLINK[1])
 	{
 		HC595_STATUS.fastCnt[1]++;
-		if (HC595_STATUS.fastCnt[1] == 20)
+		if (HC595_STATUS.fastCnt[1] == 2)
 		{
 			HC595_STATUS.fastCnt[1] = 0;
 			ledBLINK(2);
@@ -114,7 +114,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.slowBLINK[1])
 	{
 		HC595_STATUS.slowCnt[1]++;
-		if (HC595_STATUS.slowCnt[1] == 80)
+		if (HC595_STATUS.slowCnt[1] == 8)
 		{
 			HC595_STATUS.slowCnt[1] = 0;
 			ledBLINK(2);
@@ -124,7 +124,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.fastBLINK[2])
 	{
 		HC595_STATUS.fastCnt[2]++;
-		if (HC595_STATUS.fastCnt[2] == 20)
+		if (HC595_STATUS.fastCnt[2] == 2)
 		{
 			HC595_STATUS.fastCnt[2] = 0;
 			ledBLINK(3);
@@ -134,7 +134,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.slowBLINK[2])
 	{
 		HC595_STATUS.slowCnt[2]++;
-		if (HC595_STATUS.slowCnt[2] == 80)
+		if (HC595_STATUS.slowCnt[2] == 8)
 		{
 			HC595_STATUS.slowCnt[2] = 0;
 			ledBLINK(3);
@@ -144,7 +144,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.fastBLINK[3])
 	{
 		HC595_STATUS.fastCnt[3]++;
-		if (HC595_STATUS.fastCnt[3] == 20)
+		if (HC595_STATUS.fastCnt[3] == 2)
 		{
 			HC595_STATUS.fastCnt[3] = 0;
 			ledBLINK(4);
@@ -154,7 +154,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.slowBLINK[3])
 	{
 		HC595_STATUS.slowCnt[3]++;
-		if (HC595_STATUS.slowCnt[3] == 80)
+		if (HC595_STATUS.slowCnt[3] == 8)
 		{
 			HC595_STATUS.slowCnt[3] = 0;
 			ledBLINK(4);
@@ -164,7 +164,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.fastBLINK[4])
 	{
 		HC595_STATUS.fastCnt[4]++;
-		if (HC595_STATUS.fastCnt[4] == 20)
+		if (HC595_STATUS.fastCnt[4] == 2)
 		{
 			HC595_STATUS.fastCnt[4] = 0;
 			ledBLINK(5);
@@ -174,7 +174,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.slowBLINK[4])
 	{
 		HC595_STATUS.slowCnt[4]++;
-		if (HC595_STATUS.slowCnt[4] == 80)
+		if (HC595_STATUS.slowCnt[4] == 8)
 		{
 			HC595_STATUS.slowCnt[4] = 0;
 			ledBLINK(5);
@@ -184,7 +184,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.fastBLINK[5])
 	{
 		HC595_STATUS.fastCnt[5]++;
-		if (HC595_STATUS.fastCnt[5] == 20)
+		if (HC595_STATUS.fastCnt[5] == 2)
 		{
 			HC595_STATUS.fastCnt[5] = 0;
 			ledBLINK(6);
@@ -194,7 +194,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.slowBLINK[5])
 	{
 		HC595_STATUS.slowCnt[5]++;
-		if (HC595_STATUS.slowCnt[5] == 80)
+		if (HC595_STATUS.slowCnt[5] == 8)
 		{
 			HC595_STATUS.slowCnt[5] = 0;
 			ledBLINK(6);
@@ -204,7 +204,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.fastBLINK[6])
 	{
 		HC595_STATUS.fastCnt[6]++;
-		if (HC595_STATUS.fastCnt[6] == 20)
+		if (HC595_STATUS.fastCnt[6] == 2)
 		{
 			HC595_STATUS.fastCnt[6] = 0;
 			ledBLINK(7);
@@ -214,7 +214,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.slowBLINK[6])
 	{
 		HC595_STATUS.slowCnt[6]++;
-		if (HC595_STATUS.slowCnt[6] == 80)
+		if (HC595_STATUS.slowCnt[6] == 8)
 		{
 			HC595_STATUS.slowCnt[6] = 0;
 			ledBLINK(7);
@@ -224,7 +224,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.fastBLINK[7])
 	{
 		HC595_STATUS.fastCnt[7]++;
-		if (HC595_STATUS.fastCnt[7] == 20)
+		if (HC595_STATUS.fastCnt[7] == 2)
 		{
 			HC595_STATUS.fastCnt[7] = 0;
 			ledBLINK(8);
@@ -234,7 +234,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.slowBLINK[7])
 	{
 		HC595_STATUS.slowCnt[7]++;
-		if (HC595_STATUS.slowCnt[7] == 80)
+		if (HC595_STATUS.slowCnt[7] == 8)
 		{
 			HC595_STATUS.slowCnt[7] = 0;
 			ledBLINK(8);
@@ -244,7 +244,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.fastBLINK[8])
 	{
 		HC595_STATUS.fastCnt[8]++;
-		if (HC595_STATUS.fastCnt[8] == 20)
+		if (HC595_STATUS.fastCnt[8] == 2)
 		{
 			HC595_STATUS.fastCnt[8] = 0;
 			ledBLINK(9);
@@ -254,7 +254,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.slowBLINK[8])
 	{
 		HC595_STATUS.slowCnt[8]++;
-		if (HC595_STATUS.slowCnt[8] == 80)
+		if (HC595_STATUS.slowCnt[8] == 8)
 		{
 			HC595_STATUS.slowCnt[8] = 0;
 			ledBLINK(9);
@@ -264,7 +264,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.fastBLINK[9])
 	{
 		HC595_STATUS.fastCnt[9]++;
-		if (HC595_STATUS.fastCnt[9] == 20)
+		if (HC595_STATUS.fastCnt[9] == 2)
 		{
 			HC595_STATUS.fastCnt[9] = 0;
 			ledBLINK(10);
@@ -274,7 +274,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.slowBLINK[9])
 	{
 		HC595_STATUS.slowCnt[9]++;
-		if (HC595_STATUS.slowCnt[9] == 80)
+		if (HC595_STATUS.slowCnt[9] == 8)
 		{
 			HC595_STATUS.slowCnt[9] = 0;
 			ledBLINK(10);
@@ -284,7 +284,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.fastBLINK[10])
 	{
 		HC595_STATUS.fastCnt[10]++;
-		if (HC595_STATUS.fastCnt[10] == 20)
+		if (HC595_STATUS.fastCnt[10] == 2)
 		{
 			HC595_STATUS.fastCnt[10] = 0;
 			ledBLINK(11);
@@ -294,7 +294,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.slowBLINK[10])
 	{
 		HC595_STATUS.slowCnt[10]++;
-		if (HC595_STATUS.slowCnt[10] == 80)
+		if (HC595_STATUS.slowCnt[10] == 8)
 		{
 			HC595_STATUS.slowCnt[10] = 0;
 			ledBLINK(11);
@@ -304,7 +304,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.fastBLINK[11])
 	{
 		HC595_STATUS.fastCnt[11]++;
-		if (HC595_STATUS.fastCnt[11] == 20)
+		if (HC595_STATUS.fastCnt[11] == 2)
 		{
 			HC595_STATUS.fastCnt[11] = 0;
 			ledBLINK(12);
@@ -314,7 +314,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	if (HC595_STATUS.slowBLINK[11])
 	{
 		HC595_STATUS.slowCnt[11]++;
-		if (HC595_STATUS.slowCnt[11] == 80)
+		if (HC595_STATUS.slowCnt[11] == 8)
 		{
 			HC595_STATUS.slowCnt[11] = 0;
 			ledBLINK(12);

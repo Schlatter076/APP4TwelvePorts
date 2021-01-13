@@ -32,6 +32,7 @@ void bat_task(void *p_arg)
 				{
 					reportPortStatuChanged(In4G, i);
 				}
+				OSTimeDlyHMSM(0, 0, 0, 200, OS_OPT_TIME_PERIODIC, &err);
 				if (WIFI_Fram.allowHeart)
 				{
 					reportPortStatuChanged(InWifi, i);
@@ -64,16 +65,28 @@ void bat_task(void *p_arg)
 
 void chooseFlagToRun(OS_FLAGS f)
 {
+	OS_ERR err;
 	switch (f)
 	{
 	case FLAG_COMMON_HEART:
 		if (F4G_Fram.allowHeart)
 		{
 			commonHeart(In4G);
+			OSTimeDlyHMSM(0, 0, 0, 200, OS_OPT_TIME_PERIODIC, &err);
+			if(!Send_AT_Cmd(In4G, "AT+CIPSTATUS", "CONNECT OK", NULL, 200, 2, DISABLE))
+			{
+				F4G_Fram.Online = 0;  //检查是否掉线
+			}
 		}
+		OSTimeDlyHMSM(0, 0, 0, 200, OS_OPT_TIME_PERIODIC, &err);
 		if (WIFI_Fram.allowHeart)
 		{
 			commonHeart(InWifi);
+			OSTimeDlyHMSM(0, 0, 0, 200, OS_OPT_TIME_PERIODIC, &err);
+			if(WIFI_Get_LinkStatus() == 4)
+			{
+				WIFI_Fram.Online = 0;  //掉线了
+			}
 		}
 		break;
 	case FLAG_STATU_HEART:
@@ -81,6 +94,7 @@ void chooseFlagToRun(OS_FLAGS f)
 		{
 			forceHeart(In4G, UP_StatuHeart, DISABLE);
 		}
+		OSTimeDlyHMSM(0, 0, 0, 200, OS_OPT_TIME_PERIODIC, &err);
 		if (WIFI_Fram.allowHeart)
 		{
 			forceHeart(InWifi, UP_StatuHeart, DISABLE);

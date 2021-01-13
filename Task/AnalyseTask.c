@@ -38,6 +38,7 @@ void analyse_task(void *p_arg)
 		{
 			fram = &USART1_Fram;
 			net = '3';
+			needDecrypt = false;
 		}
 		else if (flag == FLAG_USART3_RxED)
 		{

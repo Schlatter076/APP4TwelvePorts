@@ -90,24 +90,26 @@ void popUP_All(void)
  */
 void remoteCtrMotot(u8 powerBank, u16 gtime, u16 ktime)
 {
-#if SYSTEM_SUPPORT_OS
-	OS_ERR err;
-	OSSchedLock(&err);  //禁止调度
-#endif
-	Motor_run(powerBank, FOREWARD);
+//#if SYSTEM_SUPPORT_OS
+//	OS_ERR err;
+//	OSSchedLock(&err);  //禁止调度
+//#endif
+	Motor_run(powerBank, BACKWARD);
 	for (u16 cnt = 0; cnt < gtime; cnt++)
 	{
-		delay_ms(100);
+		//delay_ms(100);
+		delay_us(100*1000);
 	}
-	Motor_run(powerBank, BACKWARD);
+	Motor_run(powerBank, FOREWARD);
 	for (u16 cnt = 0; cnt < ktime; cnt++)
 	{
-		delay_ms(100);
+		//delay_ms(100);
+		delay_us(100*1000);
 	}
 	Motor_stop(powerBank);
-#if SYSTEM_SUPPORT_OS
-	OSSchedUnlock(&err);  //恢复调度
-#endif
+//#if SYSTEM_SUPPORT_OS
+//	OSSchedUnlock(&err);  //恢复调度
+//#endif
 }
 
 /**

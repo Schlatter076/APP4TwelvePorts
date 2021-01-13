@@ -179,5 +179,6 @@ void reportPortStatuChanged(ENUM_Internet_TypeDef internet, u8 port);
 void request4Register(ENUM_Internet_TypeDef internet);
 void setWifiSsidAndPwd(ENUM_Internet_TypeDef internet, char *data);
 void getRegisterParams(ENUM_Internet_TypeDef internet, char *data);
+void setMotorRun(char *data);
 
 #endif /* _TCP_PUBLIC_H_ */

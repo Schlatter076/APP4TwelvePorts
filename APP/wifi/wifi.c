@@ -16,7 +16,7 @@ void USART2_Init(u32 bound)
 	USART_DeInit(USART2);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
 	//=====================================================================================================
-	DMA_USART_Tx_Init(USART2, RCC_AHB1Periph_DMA1, DMA1_Stream6_IRQn, 1, 2,
+	DMA_USART_Tx_Init(USART2, RCC_AHB1Periph_DMA1, DMA1_Stream6_IRQn, 0, 1,
 	DMA1_Stream6, DMA_Channel_4, (uint32_t) (&USART2->DR),
 			(uint32_t) WIFI_Fram.TxBuf, BASE64_BUF_LEN, DMA_Priority_High);
 
@@ -34,8 +34,8 @@ void USART2_Init(u32 bound)
 	USART_Init(USART2, &USART_InitStructure); //初始化串口
 
 	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;  //抢占优先级
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;  //子优先级
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;  //抢占优先级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;  //子优先级
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;  //IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure);  //根据指定的参数初始化VIC寄存器
 
@@ -90,7 +90,8 @@ bool WIFI_Net_Mode_Choose(ENUM_Net_ModeTypeDef enumMode)
 				2, ENABLE);
 
 	case STA_AP:
-		return Send_AT_Cmd(InWifi, "AT+CWMODE_CUR", "OK", "no change", 1800, 2, ENABLE);
+		return Send_AT_Cmd(InWifi, "AT+CWMODE_CUR", "OK", "no change", 1800, 2,
+				ENABLE);
 
 	default:
 		return false;
@@ -226,9 +227,11 @@ void WIFI_Send(const char *data)
 	char *p_str;
 	char *buf = mymalloc(20);
 	p_str = mymalloc(BASE64_BUF_LEN);
+	memset(buf, '\0', 20);
+	memset(p_str, '\0', BASE64_BUF_LEN);
 	base64_encode((const unsigned char *) data, p_str);
 	snprintf(buf, 20, "AT+CIPSENDEX=%d", strlen((const char *) p_str) + 3);
-	if (Send_AT_Cmd(InWifi, buf, ">", NULL, 200, 2, DISABLE))
+	if (Send_AT_Cmd(InWifi, buf, "> ", NULL, 200, 2, DISABLE))
 	{
 		_USART_Printf(InWifi, "{(%s}", p_str);
 		DEBUG("wifi<<%s\r\n", data);
@@ -254,7 +257,7 @@ void WIFI_ExitUnvarnishSend(void)
  */
 u8 WIFI_Get_LinkStatus(void)
 {
-	if (Send_AT_Cmd(InWifi, "AT+CIPSTATUS", "OK", 0, 500, 2, ENABLE))
+	if (Send_AT_Cmd(InWifi, "AT+CIPSTATUS", "OK", 0, 500, 2, DISABLE))
 	{
 		if (strstr((const char *) WIFI_Fram.RxBuf, "STATUS:2\r\n"))
 			return 2;
@@ -271,6 +274,7 @@ u8 WIFI_Get_LinkStatus(void)
 bool ConnectToServerByWIFI(char* addr, char* port)
 {
 	u8 cnt = 0;
+	WIFI_Fram.allowHeart = 0;
 	WIFI_Net_Mode_Choose(STA);
 	//Send_AT_Cmd(InWifi, "AT+GMR", "OK", NULL, 500, 2);
 	while (cnt < 8)
@@ -336,11 +340,6 @@ void USART2_IRQHandler(void)
 	{
 		USART2->SR; //先读SR，再读DR
 		USART2->DR;
-
-		if (strstr((const char *) WIFI_Fram.RxBuf, "CLOSED"))
-		{
-			WIFI_Fram.Online = 0;  //模块连接已断
-		}
 
 		//关闭DMA
 		DMA_Cmd(DMA1_Stream5, DISABLE);
