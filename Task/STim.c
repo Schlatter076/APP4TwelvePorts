@@ -63,7 +63,15 @@ void Stmr4_callback(void *p_tmr, void *p_arg)
 	}
 	if (F4G_Fram.allowHeart || WIFI_Fram.allowHeart)
 	{
-		if (heartCnt++ == RegisterParams.heartTime * 10)
+		heartCnt++;
+		if (heartCnt == RegisterParams.heartTime * 10 / RegisterParams.statuHeartTime)  //达到心跳时间一半时检查连接
+		{
+			OSFlagPost((OS_FLAG_GRP*) &EventFlags, //对应的事件标志组
+					(OS_FLAGS) FLAG_CHECK_LINKS, //事件位
+					(OS_OPT) OS_OPT_POST_FLAG_SET, //选择置位
+					(OS_ERR*) &err); //错误码
+		}
+		else if (heartCnt == RegisterParams.heartTime * 10)
 		{
 			heartCnt = 0;
 			OSFlagPost((OS_FLAG_GRP*) &EventFlags, //对应的事件标志组

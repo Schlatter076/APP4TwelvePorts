@@ -72,21 +72,11 @@ void chooseFlagToRun(OS_FLAGS f)
 		if (F4G_Fram.allowHeart)
 		{
 			commonHeart(In4G);
-			OSTimeDlyHMSM(0, 0, 0, 200, OS_OPT_TIME_PERIODIC, &err);
-			if(!Send_AT_Cmd(In4G, "AT+CIPSTATUS", "CONNECT OK", NULL, 200, 2, DISABLE))
-			{
-				F4G_Fram.Online = 0;  //检查是否掉线
-			}
 		}
 		OSTimeDlyHMSM(0, 0, 0, 200, OS_OPT_TIME_PERIODIC, &err);
 		if (WIFI_Fram.allowHeart)
 		{
 			commonHeart(InWifi);
-			OSTimeDlyHMSM(0, 0, 0, 200, OS_OPT_TIME_PERIODIC, &err);
-			if(WIFI_Get_LinkStatus() == 4)
-			{
-				WIFI_Fram.Online = 0;  //掉线了
-			}
 		}
 		break;
 	case FLAG_STATU_HEART:

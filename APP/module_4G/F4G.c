@@ -229,11 +229,16 @@ void USART3_IRQHandler(void)
 	{
 		USART3->SR; //先读SR，再读DR
 		USART3->DR;
-
 		//关闭DMA
 		DMA_Cmd(DMA1_Stream1, DISABLE);
 		//清除标志位
 		DMA_ClearFlag(DMA1_Stream1, DMA_FLAG_TCIF1);
+
+//		if(strstr((const char *)F4G_Fram.RxBuf, "CLOSED"))
+//		{
+//			F4G_Fram.Online = 0;
+//		}
+
 		//获得接收帧帧长
 		F4G_Fram.AccessLen = TCP_MAX_LEN - DMA_GetCurrDataCounter(DMA1_Stream1);
 		F4G_Fram.RxBuf[F4G_Fram.AccessLen] = '\0'; //添加结束符

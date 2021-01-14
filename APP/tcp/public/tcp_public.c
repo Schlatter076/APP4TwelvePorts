@@ -239,9 +239,9 @@ bool AT_Test(ENUM_Internet_TypeDef internet)
 	}
 	while (count++ < 8)
 	{
-		Send_AT_Cmd(internet, "AT", "OK", NULL, 100, 2, DISABLE);
+		Send_AT_Cmd(internet, "AT", "OK", NULL, 100, 1, DISABLE);
 	}
-	if (Send_AT_Cmd(internet, "AT", "OK", NULL, 100, 2, DISABLE))
+	if (Send_AT_Cmd(internet, "AT", "OK", NULL, 100, 1, DISABLE))
 	{
 		DEBUG("test %s success!\r\n", module);
 		myfree(module);

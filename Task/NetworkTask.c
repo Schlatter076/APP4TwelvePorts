@@ -136,6 +136,33 @@ void network_task(void *p_arg)
 			}
 		}
 
+		OSFlagPend((OS_FLAG_GRP*) &EventFlags,  //事件标志组
+				(OS_FLAGS) FLAG_CHECK_LINKS, //事件位
+				(OS_TICK) 100,    //超时时间-等500ms
+				(OS_OPT) OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_FLAG_CONSUME, //等待置位并清除
+				(CPU_TS*) 0,    //时间戳
+				(OS_ERR*) &err); //错误码
+
+		if (err == OS_OPT_NONE)
+		{
+			if (F4G_Fram.allowHeart)
+			{
+				if (Send_AT_Cmd(In4G, "AT+CIPSTATUS", "CLOSED", NULL, 200, 2,
+						DISABLE))
+				{
+					F4G_Fram.Online = 0;
+				}
+			}
+			OSTimeDlyHMSM(0, 0, 0, 200, OS_OPT_TIME_PERIODIC, &err);
+			if (WIFI_Fram.allowHeart)
+			{
+				if (WIFI_Get_LinkStatus() == 4)
+				{
+					WIFI_Fram.Online = 0;  //掉线了
+				}
+			}
+		}
+
 #if PRINT_STK_USED
 		OSTaskStkChk((OS_TCB *) 0, &n_free, &n_used, &err);
 		DEBUG("NetworkTask::free=%u,used=%u\r\n", n_free, n_used);

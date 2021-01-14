@@ -78,6 +78,7 @@ void Stmr4_callback(void *p_tmr, void *p_arg);
 #define FLAG_STATU_HEART        ((OS_FLAGS)0x1000)
 #define FLAG_F4G_FIR_REP        ((OS_FLAGS)0x2000)
 #define FLAG_WIFI_FIR_REP       ((OS_FLAGS)0x4000)
+#define FLAG_CHECK_LINKS        ((OS_FLAGS)0x8000)
 OS_FLAG_GRP EventFlags;
 //=========事件标志组===============================
 
