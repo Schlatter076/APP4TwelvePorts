@@ -61,23 +61,6 @@ extern struct STRUCT_USART_Fram F4G_Fram;
 extern struct STRUCT_USART_Fram WIFI_Fram;
 extern struct STRUCT_USART_Fram USART1_Fram;
 
-struct STRUCT_USART_Params
-{
-//	char locations[2][12];
-	unsigned char ccid[24];
-	unsigned char cops;
-	u8 rssi; //信号强度
-//	int port;
-//	char dd[20];
-//	__IO u8 play;
-//	__IO u8 checkPBst;
-//	__IO u8 process4G;
-//	__IO u8 processWIFI;
-//	__IO u8 processUSART1;
-	__IO u8 wifiParamModified;
-};
-extern struct STRUCT_USART_Params TCP_Params;
-
 struct RegisterFram	  //定义一个全局串口数据帧的处理结构体
 {
 	char key[17];

@@ -14,8 +14,6 @@ struct STRUCT_USART_Fram WIFI_Fram =
 { 0 };
 struct STRUCT_USART_Fram USART1_Fram =
 { 0 };
-struct STRUCT_USART_Params TCP_Params =
-{ 0 };
 struct RegisterFram RegisterParams =
 { 0 };
 
@@ -312,7 +310,7 @@ void getRegisterStr(char *strBuf, int len, ENUM_tcpUP_TypeDef upCMD,
 {
 	const char* template = "%s,%d,%s-%c-%c-%s-%s_%s-%s";
 	snprintf(strBuf, len, template, MyFlashParams.DeviceID, upCMD,
-			TCP_Params.ccid, TCP_Params.cops, moduleType, MyFlashParams.Version,
+			MyFlashParams.ccid, MyFlashParams.cops, moduleType, MyFlashParams.Version,
 			"0", "0", "12");
 }
 /**
@@ -587,7 +585,7 @@ void forceHeart(ENUM_Internet_TypeDef internet, ENUM_tcpUP_TypeDef upCmd,
 	}
 	buf = mymalloc(512);
 	memset(buf, '\0', 512);
-	getPowerbankSTAStr(buf, 512, upCmd, TCP_Params.rssi, 12,
+	getPowerbankSTAStr(buf, 512, upCmd, MyFlashParams.rssi, 12,
 			PowerbankSTA.powerBankBuf[0], PowerbankSTA.powerBankBuf[1],
 			PowerbankSTA.powerBankBuf[2], PowerbankSTA.powerBankBuf[3],
 			PowerbankSTA.powerBankBuf[4], PowerbankSTA.powerBankBuf[5],
@@ -684,7 +682,7 @@ void setWifiSsidAndPwd(ENUM_Internet_TypeDef internet, char *data)
 		WIFI_Send(buf);
 	}
 	myfree(buf);
-	TCP_Params.wifiParamModified = 1; //标记wifi账号密码修改
+	MyFlashParams.wifiParamModified = 1; //标记wifi账号密码修改
 }
 /**
  * 获取注册参数

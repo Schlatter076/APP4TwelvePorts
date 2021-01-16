@@ -30,6 +30,9 @@
 #define IAP_APPRUN_FLAG_DATA        ((u32)0x00005A5A)   //APP不需要做任何处理，直接运行状态
 #define IAP_SET_DeviceID_FLAG_DATA  ((u32)0x0000EDED)  //写设备标号
 #define IAP_GET_DeviceID_FLAG_DATA  ((u32)0x0000DEDE)  //读设备标号
+//模块参数信息
+#define CCID_ADDR     			((u32)0x080E0158)   //物联网卡号,长度20字节
+#define COPS_ADDR     			((u32)0x080E016C)   //运营商信息-长度1字节
 
 //FLASH 扇区的起始地址
 #define ADDR_FLASH_SECTOR_0     ((u32)0x08000000) 	//扇区0起始地址, 16 Kbytes
@@ -57,6 +60,10 @@ struct AboutFlash_typeDef
 	u8 WifiSSID[101];
 	u8 WifiPWD[101];
 	vu32 IAPFlag;
+	u8 ccid[21];
+	u8 cops;
+	u8 rssi; //信号强度
+	vu8 wifiParamModified;
 };
 extern struct AboutFlash_typeDef MyFlashParams;
 

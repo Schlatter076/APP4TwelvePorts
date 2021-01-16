@@ -10,6 +10,7 @@ void network_task(void *p_arg)
 {
 	OS_ERR err;
 	p_arg = p_arg;
+	static u8 wifiTestCnt = 0;
 #if PRINT_STK_USED
 	CPU_STK_SIZE n_free;
 	CPU_STK_SIZE n_used;
@@ -80,8 +81,9 @@ void network_task(void *p_arg)
 		}
 		//wifi上电================================================
 		//1.检查模块是否正常工作
-		if (!WIFI_Fram.AT_test_OK)
+		if (!WIFI_Fram.AT_test_OK && MyFlashParams.WifiFlag == WIFI_FLAG && wifiTestCnt < 2)
 		{
+			wifiTestCnt++;  //增加一个wifi配置计数器，防止没有插模块，但是配了wifi时一直循环配置
 			//2.检查模块是否需要重新开关机
 			WIFI_Fram.AT_test_OK = AT_Test(InWifi);
 			if (!WIFI_Fram.AT_test_OK)
@@ -110,10 +112,10 @@ void network_task(void *p_arg)
 			}
 		}
 		//9.模块处于正常工作状态
-		else
+		else if(wifiTestCnt < 2)
 		{
 			//10.如果第一次没有成功连接到ip或模块丢失掉连接或wifi配置被修改
-			if (!WIFI_Fram.Online || TCP_Params.wifiParamModified)
+			if (!WIFI_Fram.Online || MyFlashParams.wifiParamModified)
 			{
 				//11.再次执行ip连接
 				WIFI_Fram.Online = ConnectToServerByWIFI(RegisterParams.ip,
@@ -123,7 +125,7 @@ void network_task(void *p_arg)
 				if (WIFI_Fram.Online)
 				{
 					//13.清除wifi参数更改标志
-					TCP_Params.wifiParamModified = 0;
+					MyFlashParams.wifiParamModified = 0;
 					//14.再次执行注册请求
 					request4Register(InWifi);
 				}

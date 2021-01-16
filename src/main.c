@@ -10,6 +10,8 @@
 
 int main(void)
 {
+	NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x10000);
+	__enable_irq(); //开启总中断
 	delay_init(168);  	//时钟初始化
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);  	//中断分组配置
 	my_mem_init();

@@ -91,15 +91,16 @@ bool ConnectToServerBy4G(char* addr, char* port)
 	Send_AT_Cmd(In4G, "AT+CIPMUX=0", "OK", NULL, 100, 2, ENABLE);
 	//快传
 	Send_AT_Cmd(In4G, "AT+CIPQSEND=1", "OK", NULL, 100, 2, ENABLE);
-	if (TCP_Params.cops == '3')
+	if (MyFlashParams.cops == '3')
 	{
 		Send_AT_Cmd(In4G, "AT+CSTT=cmiot", "OK", NULL, 360, 2, ENABLE);
 	}
-	else if (TCP_Params.cops == '6')
+	else if (MyFlashParams.cops == '6')
 	{
-		Send_AT_Cmd(In4G, "AT+CSTT=UNIM2M.NJM2MAPN", "OK", NULL, 360, 2, ENABLE);
+		Send_AT_Cmd(In4G, "AT+CSTT=UNIM2M.NJM2MAPN", "OK", NULL, 360, 2,
+				ENABLE);
 	}
-	else if (TCP_Params.cops == '9')
+	else if (MyFlashParams.cops == '9')
 	{
 		Send_AT_Cmd(In4G, "AT+CSTT=CTNET", "OK", NULL, 360, 2, ENABLE);
 	}
@@ -108,6 +109,7 @@ bool ConnectToServerBy4G(char* addr, char* port)
 	Send_AT_Cmd(In4G, p, "CONNECT", NULL, 360, 2, ENABLE);
 	res = Send_AT_Cmd(In4G, "AT+CIPSTATUS", "CONNECT OK", NULL, 360, 2, ENABLE);
 	myfree(p);
+	MyFlash_Write(&MyFlashParams);
 	return res;
 }
 /***********************以下开始为与服务器通信业务代码部分*************************************/
@@ -115,52 +117,85 @@ void getModuleMes(void)
 {
 	unsigned char *result = NULL;
 	u8 inx = 0;
-	//获取物联网卡号
-	while (!Send_AT_Cmd(In4G, "AT+ICCID", "+ICCID:", NULL, 100, 2, ENABLE))
-		;
-	result = F4G_Fram.RxBuf;
-	inx = 0;
-	while (!(*result <= '9' && *result >= '0'))
+	u8 cnt = 0;
+	do
 	{
-		result++;
-	}
-	//当值为字母和数字时
-	while ((*result <= '9' && *result >= '0')
-			|| (*result <= 'Z' && *result >= 'A')
-			|| (*result <= 'z' && *result >= 'a'))
-	{
-		TCP_Params.ccid[inx++] = *result;
-		result++;
-	}
-	DEBUG("CCID=%s\r\n", TCP_Params.ccid);
-
+		if (cnt++ > 3)  //三次还未获取到卡号
+		{
+			DEBUG("use last CCID=%s\r\n", MyFlashParams.ccid);
+			break;
+		}
+		//获取物联网卡号
+		if (Send_AT_Cmd(In4G, "AT+ICCID", "+ICCID:", NULL, 100, 2, ENABLE))
+		{
+			result = F4G_Fram.RxBuf;
+			inx = 0;
+			while (!(*result <= '9' && *result >= '0'))
+			{
+				result++;
+			}
+			//当值为字母和数字时
+			while ((*result <= '9' && *result >= '0')
+					|| (*result <= 'Z' && *result >= 'A')
+					|| (*result <= 'z' && *result >= 'a'))
+			{
+				MyFlashParams.ccid[inx++] = *result;
+				result++;
+			}
+			DEBUG("current CCID=%s\r\n", MyFlashParams.ccid);
+			break;
+		}
+	} while (1);
 	//获取模块网络信息
-	while (!Send_AT_Cmd(In4G, "AT+COPS=0,1", "OK", NULL, 200, 2, ENABLE))
-		;
-	while (!Send_AT_Cmd(In4G, "AT+COPS?", "+COPS", NULL, 100, 2, ENABLE))
-		;
-	if ((bool) strstr((const char *) F4G_Fram.RxBuf, "CMCC"))
+	cnt = 0;
+	do
 	{
-		TCP_Params.cops = '3';
-	}
-	else if ((bool) strstr((const char *) F4G_Fram.RxBuf, "UNICOM"))
-	{
-		TCP_Params.cops = '6';
-	}
-	else
-	{
-		TCP_Params.cops = '9';
-	}
-	DEBUG("COPS is \"%c\"\r\n", TCP_Params.cops);
+		if (cnt++ > 3)
+		{
+			DEBUG("use last COPS=%c\r\n", MyFlashParams.cops);
+			break;
+		}
+		if (Send_AT_Cmd(In4G, "AT+COPS=0,1", "OK", NULL, 200, 2, ENABLE))
+		{
+			if (Send_AT_Cmd(In4G, "AT+COPS?", "+COPS", NULL, 100, 2, ENABLE))
+			{
+				if (strstr((const char *) F4G_Fram.RxBuf, "CMCC"))
+				{
+					MyFlashParams.cops = '3';
+				}
+				else if (strstr((const char *) F4G_Fram.RxBuf, "UNICOM"))
+				{
+					MyFlashParams.cops = '6';
+				}
+				else
+				{
+					MyFlashParams.cops = '9';
+				}
+				DEBUG("current COPS is \"%c\"\r\n", MyFlashParams.cops);
+				break;
+			}
+		}
+	} while (1);
 	//获取信号
-	while (!Send_AT_Cmd(In4G, "AT+CSQ", "+CSQ", NULL, 100, 2, ENABLE))
-		;
-	result = F4G_Fram.RxBuf;
-	while (*result++ != ':')
-		;
-	result++;
-	TCP_Params.rssi = atoi(strtok((char *) result, ","));
-	DEBUG("CSQ is %d\r\n", TCP_Params.rssi);
+	cnt = 0;
+	do
+	{
+		if (cnt++ > 3)
+		{
+			DEBUG("set CSQ=0.\r\n");
+			break;
+		}
+		if (Send_AT_Cmd(In4G, "AT+CSQ", "+CSQ", NULL, 100, 2, ENABLE))
+		{
+			result = F4G_Fram.RxBuf;
+			while (*result++ != ':')
+				;
+			result++;
+			MyFlashParams.rssi = atoi(strtok((char *) result, ","));
+			DEBUG("current CSQ is %d\r\n", MyFlashParams.rssi);
+			break;
+		}
+	} while (1);
 }
 
 /**
@@ -175,7 +210,7 @@ void Module4G_Send(const char *data)
 	p_str = mymalloc(BASE64_BUF_LEN);
 	memset(buf, '\0', 20);
 	memset(p_str, '\0', BASE64_BUF_LEN);
-	base64_encode((const unsigned char *)data, p_str);
+	base64_encode((const unsigned char *) data, p_str);
 	snprintf(buf, 20, "AT+CIPSEND=%d", strlen((const char *) p_str) + 3);
 	if (Send_AT_Cmd(In4G, buf, ">", NULL, 200, 2, DISABLE))
 	{
