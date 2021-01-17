@@ -310,8 +310,8 @@ void getRegisterStr(char *strBuf, int len, ENUM_tcpUP_TypeDef upCMD,
 {
 	const char* template = "%s,%d,%s-%c-%c-%s-%s_%s-%s";
 	snprintf(strBuf, len, template, MyFlashParams.DeviceID, upCMD,
-			MyFlashParams.ccid, MyFlashParams.cops, moduleType, MyFlashParams.Version,
-			"0", "0", "12");
+			MyFlashParams.ccid, MyFlashParams.cops, moduleType,
+			MyFlashParams.Version, "0", "0", "12");
 }
 /**
  * 获取不带参数的请求字符串
@@ -455,6 +455,7 @@ void ProcessServerCmd(ENUM_Internet_TypeDef internet,
 		break;
 	case DOWN_RemoteCtrMotor:
 		setMotorRun(SData);
+		break;
 	default:
 		DEBUG("cmd\"%d\" is not support\r\n", DownCMD);
 		break;
@@ -690,6 +691,8 @@ void setWifiSsidAndPwd(ENUM_Internet_TypeDef internet, char *data)
 void getRegisterParams(ENUM_Internet_TypeDef internet, char *data)
 {
 	char *tem = NULL;
+	//使面板灯常亮
+	BACK_LIGHT_STA = 1;
 	tem = strtok(data, "_");
 	RegisterParams.heartTime = atoi(tem);
 	tem = strtok(NULL, "_");

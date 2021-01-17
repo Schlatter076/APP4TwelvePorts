@@ -112,7 +112,7 @@ void network_task(void *p_arg)
 			}
 		}
 		//9.模块处于正常工作状态
-		else if(wifiTestCnt < 2)
+		else if(WIFI_Fram.AT_test_OK && MyFlashParams.WifiFlag == WIFI_FLAG && wifiTestCnt < 2)
 		{
 			//10.如果第一次没有成功连接到ip或模块丢失掉连接或wifi配置被修改
 			if (!WIFI_Fram.Online || MyFlashParams.wifiParamModified)
