@@ -11,7 +11,7 @@ void chooseFlagToRun(OS_FLAGS f);
 void bat_task(void *p_arg)
 {
 	OS_ERR err;
-	u8 portSTA = 0;
+	vu8 portSTA = 0;
 	p_arg = p_arg;
 	OS_FLAGS flag;
 #if PRINT_STK_USED
@@ -58,8 +58,8 @@ void bat_task(void *p_arg)
 		OSTaskStkChk((OS_TCB *) 0, &n_free, &n_used, &err);
 		DEBUG("BatTaskTCB::free=%u,used=%u\r\n", n_free, n_used);
 #endif
-		//每200ms检测一次卡口状态
-		OSTimeDlyHMSM(0, 0, 0, 200, OS_OPT_TIME_PERIODIC, &err);
+		//每1S检测一次卡口状态
+		OSTimeDlyHMSM(0, 0, 1, 0, OS_OPT_TIME_PERIODIC, &err);
 	}
 }
 

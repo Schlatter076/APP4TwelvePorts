@@ -287,7 +287,9 @@ void app_frame_anasys(u8 *data, u16 size)
 		if (data[Hinx + len - 1] == BAT_Up_End)
 		{
 			crcBuf = mymalloc(len - 4); //为crc申请空间
+			memset(crcBuf, 0, len -4);
 			temBuf = mymalloc(len);     //为帧申请空间
+			memset(temBuf, 0, len);
 			for (int i = 0; i < len; i++, Hinx++)
 			{
 				temBuf[i] = data[Hinx];
@@ -419,7 +421,6 @@ u8 checkPowerbankStatus(u8 i)
 {
 	vu8 pbStatu = 0;
 	vu8 motorStatu = 0;
-	vu8 communicationStatu = 0;
 	vu8 index = 0;
 	u8 pbERROR = 0;
 	u16 len = 0;
@@ -435,6 +436,7 @@ u8 checkPowerbankStatus(u8 i)
 	}
 	_USART6_CTL = 1; //串口6发送使能
 	communicateWithPort(i + 1); //接通对应串口通信线
+	delay_ms(10);
 	USART6_DMA_Send(len); //向充电宝发送数据
 	//等待数据发送完成
 	OSFlagPend((OS_FLAG_GRP*) &EventFlags,  //事件标志组
@@ -447,37 +449,28 @@ u8 checkPowerbankStatus(u8 i)
 	//等待数据接收,超时50ms
 	OSFlagPend((OS_FLAG_GRP*) &EventFlags,  //事件标志组
 			(OS_FLAGS) FLAG_USART6_RxED, //事件位
-			(OS_TICK) 10,    //超时时间
+			(OS_TICK) 20,    //超时时间
 			(OS_OPT) OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_FLAG_CONSUME, //等待置位并清除
 			(CPU_TS*) 0,    //时间戳
 			(OS_ERR*) &err); //错误码
-	if (err != OS_ERR_TIMEOUT) //正确接收到数据
+
+	if (err == OS_OPT_NONE) //正确接收到数据
 	{
 		app_frame_anasys(USART6_Fram.RxBuf, USART6_Fram.AccessLen);
-		communicationStatu = 1;
-	}
-	else //超时未收到信号量信息
-	{
-		communicationStatu = 0;
-	}
-	index = (pbERROR << 3) | (pbStatu << 2) | (communicationStatu << 1)
-			| (motorStatu << 0);
-	//查状态表
-	portSTA = bat_statuBuf[index];
-	//增加判断============Begin============
-	if (portSTA == 11 || portSTA == 1) //有电池，锁弹出异常，通信正常
-	{
-		if (MyFlashParams.IgnoreLock[i] == 1) //设置了忽略锁状态
+		index = (pbERROR << 3) | (pbStatu << 2) | (1 << 1) | (motorStatu << 0);
+		//查状态表
+		portSTA = bat_statuBuf[index];
+		//增加判断============Begin============
+		if (portSTA == 11)
 		{
-			portSTA = (portSTA == 11) ? 10 : 0;
+			if (MyFlashParams.IgnoreLock[i] == 1) //设置了忽略锁状态
+			{
+				portSTA = 10;
+			}
 		}
-	}
-	//增加判断============End============
-	setBATInstruction(i, portSTA);  //配置卡口状态
-	//清除当前状态数组的值
-	memset(PowerbankSTA.powerBankBuf[i], '\0', 18);
-	if (communicationStatu) //如果正常有通信
-	{
+		//增加判断============End============
+		//清除当前状态数组的值
+		memset(PowerbankSTA.powerBankBuf[i], '\0', 18);
 		if (pbERROR) //充电宝上报错误信息
 		{
 			snprintf(PowerbankSTA.powerBankBuf[i], 18, "%d_%d_%02X_%s", i,
@@ -489,10 +482,25 @@ u8 checkPowerbankStatus(u8 i)
 					portSTA, PowerbankSTA.VOL, PowerbankSTA.BatID);
 		}
 	}
-	else //未接收到充电宝发来的数据
+	else
 	{
+		index = (pbERROR << 3) | (pbStatu << 2) | (0 << 1) | (motorStatu << 0);
+		//查状态表
+		portSTA = bat_statuBuf[index];
+		//增加判断============Begin============
+		if (portSTA == 1)
+		{
+			if (MyFlashParams.IgnoreLock[i] == 1) //设置了忽略锁状态
+			{
+				portSTA = 0;
+			}
+		}
+		//增加判断============End============
+		//清除当前状态数组的值
+		memset(PowerbankSTA.powerBankBuf[i], '\0', 18);
 		snprintf(PowerbankSTA.powerBankBuf[i], 18, "%d_%d", i, portSTA);
 	}
+	setBATInstruction(i, portSTA);  //配置卡口状态
 	//===========================================================================
 	return portSTA;
 }
@@ -537,7 +545,7 @@ u16 fillDataToTxBuf(u8 cmd, u8 allowSetID, u8 *id)
 	return (6);
 }
 
-/**
+/*
  * 串口6通过DMA发送数据
  * @data 待发送的数据
  * @return 无
