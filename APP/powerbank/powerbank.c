@@ -81,32 +81,67 @@ void communicateWithPort(u8 port)
 	case 1:
 		_A1_1 = 0;
 		_A0_1 = 0;
+		//
+		_A1_2 = 1;
+		_A0_2 = 1;
+		_A1_3 = 1;
+		_A0_3 = 1;
+		_A1_4 = 1;
+		_A0_4 = 1;
 		break;
 	case 2:
 		_A1_1 = 0;
 		_A0_1 = 1;
+		//_A1_2 = 1;
+		_A0_2 = 1;
+		_A1_3 = 1;
+		_A0_3 = 1;
+		_A1_4 = 1;
+		_A0_4 = 1;
 		break;
 	case 3:
 		_A1_1 = 1;
 		_A0_1 = 0;
+		//
+		_A1_2 = 1;
+		_A0_2 = 1;
+		_A1_3 = 1;
+		_A0_3 = 1;
+		_A1_4 = 1;
+		_A0_4 = 1;
 		break;
 	case 4:
 		_A1_1 = 1;
 		_A0_1 = 1;
 		_A1_2 = 0;
 		_A0_2 = 0;
+		//
+		_A1_3 = 1;
+		_A0_3 = 1;
+		_A1_4 = 1;
+		_A0_4 = 1;
 		break;
 	case 5:
 		_A1_1 = 1;
 		_A0_1 = 1;
 		_A1_2 = 0;
 		_A0_2 = 1;
+		//
+		_A1_3 = 1;
+		_A0_3 = 1;
+		_A1_4 = 1;
+		_A0_4 = 1;
 		break;
 	case 6:
 		_A1_1 = 1;
 		_A0_1 = 1;
 		_A1_2 = 1;
 		_A0_2 = 0;
+		//
+		_A1_3 = 1;
+		_A0_3 = 1;
+		_A1_4 = 1;
+		_A0_4 = 1;
 		break;
 	case 7:
 		_A1_1 = 1;
@@ -115,6 +150,9 @@ void communicateWithPort(u8 port)
 		_A0_2 = 1;
 		_A1_3 = 0;
 		_A0_3 = 0;
+		//
+		_A1_4 = 1;
+		_A0_4 = 1;
 		break;
 	case 8:
 		_A1_1 = 1;
@@ -123,6 +161,9 @@ void communicateWithPort(u8 port)
 		_A0_2 = 1;
 		_A1_3 = 0;
 		_A0_3 = 1;
+		//
+		_A1_4 = 1;
+		_A0_4 = 1;
 		break;
 	case 9:
 		_A1_1 = 1;
@@ -131,6 +172,9 @@ void communicateWithPort(u8 port)
 		_A0_2 = 1;
 		_A1_3 = 1;
 		_A0_3 = 0;
+		//
+		_A1_4 = 1;
+		_A0_4 = 1;
 		break;
 	case 10:
 		_A1_1 = 1;
@@ -261,7 +305,7 @@ unsigned int get_crc_2(int num, ...)
  * @data 待解析的数据
  * @size 数据长度
  */
-void app_frame_anasys(u8 *data, u16 size)
+bool app_frame_anasys(u8 *data, u16 size)
 {
 	u8 Hinx = 0; //数据头位置
 	u8 len = 0;  //帧长度
@@ -269,6 +313,7 @@ void app_frame_anasys(u8 *data, u16 size)
 	u16 crc = 0; //crc校验值
 	u8 *crcBuf;  //待校验的crc数据缓冲区
 	u8 *temBuf;  //完整帧数据缓冲区
+	bool ret = false;
 	//寻找数据头
 	for (int i = 0; i < size - 3; i++)
 	{
@@ -287,7 +332,7 @@ void app_frame_anasys(u8 *data, u16 size)
 		if (data[Hinx + len - 1] == BAT_Up_End)
 		{
 			crcBuf = mymalloc(len - 4); //为crc申请空间
-			memset(crcBuf, 0, len -4);
+			memset(crcBuf, 0, len - 4);
 			temBuf = mymalloc(len);     //为帧申请空间
 			memset(temBuf, 0, len);
 			for (int i = 0; i < len; i++, Hinx++)
@@ -303,10 +348,13 @@ void app_frame_anasys(u8 *data, u16 size)
 			if (crc == ((data[len - 3] << 8) | data[len - 2])) //crc校验成功
 			{
 				app_cmd_anasys(temBuf, cmd);
+				ret = true;
 			}
 			myfree(temBuf); //释放帧缓冲区
 		}
 	}
+	memset(USART6_Fram.RxBuf, 0, USART6_RX_BUF_LEN);
+	return ret;
 }
 /**
  * 帧数据解析
@@ -423,40 +471,19 @@ u8 checkPowerbankStatus(u8 i)
 	vu8 motorStatu = 0;
 	vu8 index = 0;
 	u8 pbERROR = 0;
-	u16 len = 0;
 	vu8 portSTA = 0;
-	OS_ERR err;
-	len = fillDataToTxBuf(BAT_Down_Admin, 0, NULL);
+	bool communicateSTA = false;
+	u8 cnt = 0;
+
 	pbStatu = getBatSwitchSTA(i + 1);
 	motorStatu = getMotorSwitchSTA(i + 1);
-	//如果当前卡口未通电,则先通电
-	if (!PowerbankSTA.Charging[i])
-	{
-		controlPowerBankCharge(i + 1, 1);
-	}
-	_USART6_CTL = 1; //串口6发送使能
-	communicateWithPort(i + 1); //接通对应串口通信线
-	delay_ms(10);
-	USART6_DMA_Send(len); //向充电宝发送数据
-	//等待数据发送完成
-	OSFlagPend((OS_FLAG_GRP*) &EventFlags,  //事件标志组
-			(OS_FLAGS) FLAG_USART6_TxED, //事件位
-			(OS_TICK) 0,    //超时时间
-			(OS_OPT) OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_FLAG_CONSUME, //等待置位并清除
-			(CPU_TS*) 0,    //时间戳
-			(OS_ERR*) &err); //错误码
-	_USART6_CTL = 0; //串口6接收使能
-	//等待数据接收,超时50ms
-	OSFlagPend((OS_FLAG_GRP*) &EventFlags,  //事件标志组
-			(OS_FLAGS) FLAG_USART6_RxED, //事件位
-			(OS_TICK) 20,    //超时时间
-			(OS_OPT) OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_FLAG_CONSUME, //等待置位并清除
-			(CPU_TS*) 0,    //时间戳
-			(OS_ERR*) &err); //错误码
 
-	if (err == OS_OPT_NONE) //正确接收到数据
+	while(cnt++ < 2 && !communicateSTA)
 	{
-		app_frame_anasys(USART6_Fram.RxBuf, USART6_Fram.AccessLen);
+		communicateSTA = communicationTest(i);
+	}
+	if (communicateSTA)
+	{
 		index = (pbERROR << 3) | (pbStatu << 2) | (1 << 1) | (motorStatu << 0);
 		//查状态表
 		portSTA = bat_statuBuf[index];
@@ -503,6 +530,47 @@ u8 checkPowerbankStatus(u8 i)
 	setBATInstruction(i, portSTA);  //配置卡口状态
 	//===========================================================================
 	return portSTA;
+}
+/**
+ * 测试通信
+ */
+bool communicationTest(u8 i)
+{
+	u16 len = 0;
+	bool ret = false;
+	OS_ERR err;
+	len = fillDataToTxBuf(BAT_Down_Admin, 0, NULL);
+	//如果当前卡口未通电,则先通电
+	if (!PowerbankSTA.Charging[i])
+	{
+		controlPowerBankCharge(i + 1, 1);
+	}
+	_USART6_CTL = 1; //串口6发送使能
+	communicateWithPort(i + 1); //接通对应串口通信线
+	delay_ms(20);
+	USART6_DMA_Send(len); //向充电宝发送数据
+	//等待数据发送完成
+	OSFlagPend((OS_FLAG_GRP*) &EventFlags,  //事件标志组
+			(OS_FLAGS) FLAG_USART6_TxED, //事件位
+			(OS_TICK) 0,    //超时时间
+			(OS_OPT) OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_FLAG_CONSUME, //等待置位并清除
+			(CPU_TS*) 0,    //时间戳
+			(OS_ERR*) &err); //错误码
+	_USART6_CTL = 0; //串口6接收使能
+	//等待数据接收,超时50ms
+	OSFlagPend((OS_FLAG_GRP*) &EventFlags,  //事件标志组
+			(OS_FLAGS) FLAG_USART6_RxED, //事件位
+			(OS_TICK) 10,    //超时时间
+			(OS_OPT) OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_FLAG_CONSUME, //等待置位并清除
+			(CPU_TS*) 0,    //时间戳
+			(OS_ERR*) &err); //错误码
+
+	if (err == OS_OPT_NONE) //正确接收到数据
+	{
+		ret = app_frame_anasys(USART6_Fram.RxBuf,
+				USART6_Fram.AccessLen);
+	}
+	return ret;
 }
 
 /**
@@ -612,6 +680,7 @@ void USART6_IRQHandler(void)                	//串口1中断服务程序
 		//获得接收帧帧长
 		USART6_Fram.AccessLen = USART6_RX_BUF_LEN
 				- DMA_GetCurrDataCounter(DMA2_Stream1);
+
 		//这里可以通知任务来处理数据
 #if SYSTEM_SUPPORT_OS
 		//推送接收完成

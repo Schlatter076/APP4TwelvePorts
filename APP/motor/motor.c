@@ -69,17 +69,17 @@ void popUP_powerBank(u8 powerBank)
  */
 void popUP_All(void)
 {
-#if SYSTEM_SUPPORT_OS
-	OS_ERR err;
-	OSSchedLock(&err);  //禁止调度
-#endif
+//#if SYSTEM_SUPPORT_OS
+//	OS_ERR err;
+//	OSSchedLock(&err);  //禁止调度
+//#endif
 	for (int i = 0; i < 12; i++)
 	{
 		popUP_powerBank(i + 1);
 	}
-#if SYSTEM_SUPPORT_OS
-	OSSchedUnlock(&err);  //恢复调度
-#endif
+//#if SYSTEM_SUPPORT_OS
+//	OSSchedUnlock(&err);  //恢复调度
+//#endif
 }
 
 /**

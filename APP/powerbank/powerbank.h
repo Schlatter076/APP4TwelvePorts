@@ -16,6 +16,7 @@
 #include "includes.h"
 #endif
 #include "task.h"
+#include <stdbool.h>
 
 extern vu8 curPort;
 
@@ -64,19 +65,19 @@ enum BAT_CMD_ENUM
 
 struct Powerbank_Params_TypeDef
 {
-	u8 VOL;
-	u8 ERROR;
-	u16 CUR;
-	u8 Charging[12];
-	u8 ChargingCnt;
-	u8 BatID[9];
-	u8 currentStatuCode[12];
+	vu8 VOL;
+	vu8 ERROR;
+	vu16 CUR;
+	vu8 Charging[12];
+	vu8 ChargingCnt;
+	vu8 BatID[9];
+	vu8 currentStatuCode[12];
 	char powerBankBuf[12][18];
 };
 extern struct Powerbank_Params_TypeDef PowerbankSTA;
 
-#define USART6_RX_BUF_LEN  32
-#define USART6_TX_BUF_LEN  32
+#define USART6_RX_BUF_LEN  20
+#define USART6_TX_BUF_LEN  16
 
 struct USART6_Fram_TypeDef
 {
@@ -92,7 +93,7 @@ void Charge_Init(void);
 unsigned int get_crc(unsigned char pbuf[], unsigned char num);
 unsigned int get_crc_2(int num, ...);
 void app_cmd_anasys(u8 *data, u8 cmd);
-void app_frame_anasys(u8 *data, u16 size);
+bool app_frame_anasys(u8 *data, u16 size);
 u16 fillDataToTxBuf(u8 cmd, u8 allowSetID, u8 *id);
 void setBATInstruction(u8 port, u8 sta);
 void controlPowerBankCharge(u8 pb, u8 allow);
@@ -101,5 +102,6 @@ void communicateWithPort(u8 port);
 void Powerbank_Init(u32 bound);
 u8 checkPowerbankStatus(u8 i);
 void USART6_DMA_Send(u16 size);
+bool communicationTest(u8 i);
 
 #endif /* POWERBANK_POWERBANK_H_ */
