@@ -42,6 +42,9 @@ extern vu8 curPort;
 #define _A0_4           (PCout(2))
 #define _A1_4           (PCout(3))
 
+
+#define NEW_BAT_USART   1u
+
 enum BAT_CMD_ENUM
 {
 	BAT_ComTest = 0xFF,
@@ -72,7 +75,7 @@ struct Powerbank_Params_TypeDef
 	vu8 ChargingCnt;
 	vu8 BatID[9];
 	vu8 currentStatuCode[12];
-	char powerBankBuf[12][18];
+	char powerBankBuf[12][19];
 };
 extern struct Powerbank_Params_TypeDef PowerbankSTA;
 

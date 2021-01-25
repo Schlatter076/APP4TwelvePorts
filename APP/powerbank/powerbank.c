@@ -76,139 +76,163 @@ void USART6_Init(u32 bound)
  */
 void communicateWithPort(u8 port)
 {
+#if NEW_BAT_USART
 	switch (port)
 	{
 	case 1:
 		_A1_1 = 0;
 		_A0_1 = 0;
-		//
-		_A1_2 = 1;
-		_A0_2 = 1;
-		_A1_3 = 1;
-		_A0_3 = 1;
-		_A1_4 = 1;
-		_A0_4 = 1;
+		_A1_2 = 0;
+		_A0_2 = 0;
 		break;
 	case 2:
 		_A1_1 = 0;
-		_A0_1 = 1;
-		//_A1_2 = 1;
+		_A0_1 = 0;
+		_A1_2 = 0;
 		_A0_2 = 1;
-		_A1_3 = 1;
-		_A0_3 = 1;
-		_A1_4 = 1;
-		_A0_4 = 1;
 		break;
 	case 3:
-		_A1_1 = 1;
+		_A1_1 = 0;
 		_A0_1 = 0;
-		//
 		_A1_2 = 1;
-		_A0_2 = 1;
-		_A1_3 = 1;
-		_A0_3 = 1;
-		_A1_4 = 1;
-		_A0_4 = 1;
+		_A0_2 = 0;
 		break;
 	case 4:
-		_A1_1 = 1;
-		_A0_1 = 1;
-		_A1_2 = 0;
-		_A0_2 = 0;
-		//
-		_A1_3 = 1;
-		_A0_3 = 1;
-		_A1_4 = 1;
-		_A0_4 = 1;
+		_A1_1 = 0;
+		_A0_1 = 0;
+		_A1_2 = 1;
+		_A0_2 = 1;
 		break;
 	case 5:
-		_A1_1 = 1;
+		_A1_1 = 0;
 		_A0_1 = 1;
-		_A1_2 = 0;
-		_A0_2 = 1;
-		//
-		_A1_3 = 1;
-		_A0_3 = 1;
-		_A1_4 = 1;
-		_A0_4 = 1;
-		break;
-	case 6:
-		_A1_1 = 1;
-		_A0_1 = 1;
-		_A1_2 = 1;
-		_A0_2 = 0;
-		//
-		_A1_3 = 1;
-		_A0_3 = 1;
-		_A1_4 = 1;
-		_A0_4 = 1;
-		break;
-	case 7:
-		_A1_1 = 1;
-		_A0_1 = 1;
-		_A1_2 = 1;
-		_A0_2 = 1;
 		_A1_3 = 0;
 		_A0_3 = 0;
-		//
-		_A1_4 = 1;
-		_A0_4 = 1;
 		break;
-	case 8:
-		_A1_1 = 1;
+	case 6:
+		_A1_1 = 0;
 		_A0_1 = 1;
-		_A1_2 = 1;
-		_A0_2 = 1;
 		_A1_3 = 0;
 		_A0_3 = 1;
-		//
-		_A1_4 = 1;
-		_A0_4 = 1;
+		break;
+	case 7:
+		_A1_1 = 0;
+		_A0_1 = 1;
+		_A1_3 = 1;
+		_A0_3 = 0;
+		break;
+	case 8:
+		_A1_1 = 0;
+		_A0_1 = 1;
+		_A1_3 = 1;
+		_A0_3 = 1;
 		break;
 	case 9:
 		_A1_1 = 1;
-		_A0_1 = 1;
-		_A1_2 = 1;
-		_A0_2 = 1;
-		_A1_3 = 1;
-		_A0_3 = 0;
-		//
-		_A1_4 = 1;
-		_A0_4 = 1;
+		_A0_1 = 0;
+		_A1_4 = 0;
+		_A0_4 = 0;
 		break;
 	case 10:
 		_A1_1 = 1;
-		_A0_1 = 1;
-		_A1_2 = 1;
-		_A0_2 = 1;
-		_A1_3 = 1;
-		_A0_3 = 1;
-		_A1_4 = 0;
-		_A0_4 = 0;
-		break;
-	case 11:
-		_A1_1 = 1;
-		_A0_1 = 1;
-		_A1_2 = 1;
-		_A0_2 = 1;
-		_A1_3 = 1;
-		_A0_3 = 1;
+		_A0_1 = 0;
 		_A1_4 = 0;
 		_A0_4 = 1;
 		break;
-	case 12:
+	case 11:
 		_A1_1 = 1;
-		_A0_1 = 1;
-		_A1_2 = 1;
-		_A0_2 = 1;
-		_A1_3 = 1;
-		_A0_3 = 1;
+		_A0_1 = 0;
 		_A1_4 = 1;
 		_A0_4 = 0;
+		break;
+	case 12:
+		_A1_1 = 1;
+		_A0_1 = 0;
+		_A1_4 = 1;
+		_A0_4 = 1;
 		break;
 	default:
 		break;
 	}
+#else
+	switch (port)
+	{
+		case 1:
+		_A1_1 = 0;
+		_A0_1 = 0;
+		_A1_2 = 1;
+		_A0_2 = 1;
+		break;
+		case 2:
+		_A1_1 = 0;
+		_A0_1 = 1;
+		_A1_3 = 1;
+		_A0_3 = 1;
+		break;
+		case 3:
+		_A1_1 = 1;
+		_A0_1 = 0;
+		_A1_4 = 1;
+		_A0_4 = 1;
+		break;
+		case 4:
+		_A1_1 = 0;
+		_A0_1 = 0;
+		_A1_2 = 0;
+		_A0_2 = 0;
+		break;
+		case 5:
+		_A1_1 = 0;
+		_A0_1 = 0;
+		_A1_2 = 0;
+		_A0_2 = 1;
+		break;
+		case 6:
+		_A1_1 = 0;
+		_A0_1 = 0;
+		_A1_2 = 1;
+		_A0_2 = 0;
+		break;
+		case 7:
+		_A1_1 = 0;
+		_A0_1 = 1;
+		_A1_3 = 0;
+		_A0_3 = 0;
+		break;
+		case 8:
+		_A1_1 = 0;
+		_A0_1 = 1;
+		_A1_3 = 0;
+		_A0_3 = 1;
+		break;
+		case 9:
+		_A1_1 = 0;
+		_A0_1 = 1;
+		_A1_3 = 1;
+		_A0_3 = 0;
+		break;
+		case 10:
+		_A1_1 = 1;
+		_A0_1 = 0;
+		_A1_4 = 0;
+		_A0_4 = 0;
+		break;
+		case 11:
+		_A1_1 = 1;
+		_A0_1 = 0;
+		_A1_4 = 0;
+		_A0_4 = 1;
+		break;
+		case 12:
+		_A1_1 = 1;
+		_A0_1 = 0;
+		_A1_4 = 1;
+		_A0_4 = 0;
+		break;
+		default:
+		break;
+	}
+#endif
 }
 
 void Powerbank_Init(u32 bound)
@@ -219,23 +243,26 @@ void Powerbank_Init(u32 bound)
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE); //使能GPIOC时钟
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_8;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_14
 			| GPIO_Pin_15;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_Init(GPIOD, &GPIO_InitStructure);
 
 	Charge_Init();
@@ -478,7 +505,7 @@ u8 checkPowerbankStatus(u8 i)
 	pbStatu = getBatSwitchSTA(i + 1);
 	motorStatu = getMotorSwitchSTA(i + 1);
 
-	while(cnt++ < 2 && !communicateSTA)
+	while (cnt++ < 2 && !communicateSTA)
 	{
 		communicateSTA = communicationTest(i);
 	}
@@ -497,15 +524,15 @@ u8 checkPowerbankStatus(u8 i)
 		}
 		//增加判断============End============
 		//清除当前状态数组的值
-		memset(PowerbankSTA.powerBankBuf[i], '\0', 18);
+		memset(PowerbankSTA.powerBankBuf[i], '\0', 19);
 		if (pbERROR) //充电宝上报错误信息
 		{
-			snprintf(PowerbankSTA.powerBankBuf[i], 18, "%d_%d_%02X_%s", i,
+			snprintf(PowerbankSTA.powerBankBuf[i], 19, "%d_%d_%02X_%s", i,
 					portSTA, PowerbankSTA.ERROR, PowerbankSTA.BatID);
 		}
 		else //正常通信状态
 		{
-			snprintf(PowerbankSTA.powerBankBuf[i], 18, "%d_%d_%d_%s", i,
+			snprintf(PowerbankSTA.powerBankBuf[i], 19, "%d_%d_%d_%s", i,
 					portSTA, PowerbankSTA.VOL, PowerbankSTA.BatID);
 		}
 	}
@@ -524,8 +551,8 @@ u8 checkPowerbankStatus(u8 i)
 		}
 		//增加判断============End============
 		//清除当前状态数组的值
-		memset(PowerbankSTA.powerBankBuf[i], '\0', 18);
-		snprintf(PowerbankSTA.powerBankBuf[i], 18, "%d_%d", i, portSTA);
+		memset(PowerbankSTA.powerBankBuf[i], '\0', 19);
+		snprintf(PowerbankSTA.powerBankBuf[i], 19, "%d_%d", i, portSTA);
 	}
 	setBATInstruction(i, portSTA);  //配置卡口状态
 	//===========================================================================
@@ -547,7 +574,7 @@ bool communicationTest(u8 i)
 	}
 	_USART6_CTL = 1; //串口6发送使能
 	communicateWithPort(i + 1); //接通对应串口通信线
-	delay_ms(20);
+	delay_ms(10);
 	USART6_DMA_Send(len); //向充电宝发送数据
 	//等待数据发送完成
 	OSFlagPend((OS_FLAG_GRP*) &EventFlags,  //事件标志组
@@ -567,8 +594,7 @@ bool communicationTest(u8 i)
 
 	if (err == OS_OPT_NONE) //正确接收到数据
 	{
-		ret = app_frame_anasys(USART6_Fram.RxBuf,
-				USART6_Fram.AccessLen);
+		ret = app_frame_anasys(USART6_Fram.RxBuf, USART6_Fram.AccessLen);
 	}
 	return ret;
 }
